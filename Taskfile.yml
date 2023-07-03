@@ -1,0 +1,31 @@
+version: '3'
+
+env:
+  VENV_DIR: 'env'
+
+tasks:
+
+  activate:
+    cmds:
+      - source {{.VENV_DIR}}/bin/activate
+
+  install:
+    desc: Install the project dependencies
+    cmds:
+      - pip install -r requirements.txt
+    pre:
+      - task: activate
+
+  test:
+    desc: Run the unit tests
+    cmds:
+      - python -m unittest
+    pre:
+      - task: activate
+
+  run:
+    desc: Run the main script
+    cmds:
+      - python src/main.py
+    pre:
+      - task: activate
