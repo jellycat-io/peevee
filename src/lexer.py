@@ -80,13 +80,44 @@ class Lexer:
         self.source = source
         self.tokens = []
         # Stack to keep track of indentation levels
-        self.indent_levels = [0]
+        self.indent_stack = [0]
         self.tokenize()
 
     def tokenize(self):
+        lines = self.source.split("\n")
+        for line_num, line in enumerate(lines, start=1):
+            column = 1
+            indent_level = len(line) - len(line.lstrip())
+            indent_string = line[:indent_level]
+
+            if indent_level == self.indent_stack[-1]:
+                column += len(indent_string)
+
+            while indent_level < self.indent_stack[-1]:
+                self.tokens.append(Token(DEDENT, "", line_num, column))
+                self.indent_stack.pop()
+
+            if indent_level > self.indent_stack[-1]:
+                self.tokens.append(Token(INDENT, "", line_num, column))
+                self.indent_stack.append(indent_level)
+                column += len(indent_string)
+
+            self.tokenize_line(line, line_num, column)
+
+        # Add DEDENT tokens for remaining indent levels
+        for _ in range(len(self.indent_stack) - 1):
+            self.tokens.append(Token(DEDENT, "", len(lines) + 1, 1))
+
+        # Append EOF token at the end
+        self.tokens.append(Token(EOF, "", len(lines) + 1, 1))
+
+    def tokenize_line(self, line: str, line_num: int, column: int):
+        line = line.lstrip()
+        column += len(line) - len(line.lstrip())
+
         # Define regular expression patterns for token types
         patterns = [
-            (r"^[ \t]+", INDENT),
+            (r"^[ \t]+", WHITESPACE),
             (r"\#[^\n]*", COMMENT),
             (r"^\n", CR),
             (r"[a-zA-Z_][a-zA-Z0-9_]*", IDENT),
@@ -115,113 +146,27 @@ class Lexer:
             (r"\]", RBRACKET),
         ]
 
-        # Tokenize the source code
-        pos = 0
-        line = 1
-        column = 1
-
-        while pos < len(self.source):
-            # Handle line start (indentation)
-            if column == 1:
-                indent_match = re.match(r"^[ \t]*", self.source[pos:])
-                if indent_match:
-                    indent = indent_match.group(0)
-                    indent_len = len(indent)
-                    if indent_len > self.indent_levels[-1]:
-                        self.tokens.append(
-                            Token(
-                                type=INDENT,
-                                literal=indent,
-                                line=line,
-                                column=column,
-                            )
-                        )
-                        self.indent_levels.append(indent_len)
-                    elif indent_len < self.indent_levels[-1]:
-                        while indent_len < self.indent_levels[-1]:
-                            self.indent_levels.pop()
-                            self.tokens.append(
-                                Token(
-                                    type=DEDENT,
-                                    literal="",
-                                    line=line,
-                                    column=column,
-                                )
-                            )
-                    column += indent_len
-                    pos += indent_len
-
+        while line:
             matched = False
             for pattern, token_type in patterns:
-                match = re.match(pattern, self.source[pos:])
+                match = re.match(pattern, line)
                 if match:
                     lexeme = match.group(0)
-
-                    if token_type == CR:
-                        line += 1
-                        column = 1
-                        pos += 1
-                        matched = True
-                        break
-
-                    column += len(lexeme)
-
-                    if token_type == IDENT:
-                        token_type = lookup_ident(lexeme)
-
-                    # Skip spaces and tabs within a line
-                    if lexeme.isspace() and lexeme != "\n":
-                        pos += len(lexeme)
-                        matched = True
-                        break
-
                     self.tokens.append(
-                        Token(
-                            type=token_type,
-                            literal=lexeme,
-                            line=line,
-                            column=column,
-                        )
-                    )
-                    pos += len(lexeme)
+                        Token(token_type, lexeme, line_num, column))
+                    line = line[len(lexeme):]
+                    column += len(lexeme)
                     matched = True
                     break
 
-            if not matched and pos < len(self.source):
-                # No pattern matched, character is illegal
-                print(f"[{line}:{column}] Unexpected token {self.source[pos]}")
-                self.tokens.append(
-                    Token(
-                        type=ILLEGAL,
-                        literal=self.source[pos],
-                        line=line,
-                        column=column,
-                    )
-                )
-                pos += 1
+            if not matched:
+                self.tokens.append(Token(ILLEGAL, line[0], line_num, column))
+                line = line[1:]
                 column += 1
 
-        # Add DEDENT tokens for remaining indent levels
-        while len(self.indent_levels) > 1:
-            self.indent_levels.pop()
-            self.tokens.append(
-                Token(
-                    type=DEDENT,
-                    literal="",
-                    line=line,
-                    column=column,
-                )
-            )
-
-        # Append EOF token at the end
-        self.tokens.append(
-            Token(
-                type=EOF,
-                literal="",
-                line=line,
-                column=column,
-            )
-        )
+        # Decrement the column value for DEDENT tokens
+        if self.tokens and self.tokens[-1].type == DEDENT:
+            self.tokens[-1] = Token(DEDENT, "", line_num, column - 1)
 
     def get_tokens(self) -> List[Token]:
         return self.tokens

@@ -16,16 +16,23 @@ tasks:
     pre:
       - task: activate
 
+  update_requirements:
+    desc: Update the requirements.txt file
+    cmds:
+      - pip freeze -r requirements.txt >> requirements.txt
+    pre:
+      - task: activate
+
   test:
     desc: Run the unit tests
     cmds:
-      - python -m unittest
+      - pytest
     pre:
       - task: activate
 
   run:
     desc: Run the main script
     cmds:
-      - python src/main.py
+      - python3 src/main.py
     pre:
       - task: activate
