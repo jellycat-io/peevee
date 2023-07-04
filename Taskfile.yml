@@ -19,7 +19,22 @@ tasks:
   update_requirements:
     desc: Update the requirements.txt file
     cmds:
-      - pip freeze -r requirements.txt >> requirements.txt
+      - echo "" > requirements.txt
+      - pip freeze >> requirements.txt
+    pre:
+      - task: activate
+
+  fmt:
+    desc: Format source and test files
+    cmds:
+      - autopep8 --in-place --recursive src tests
+    pre:
+      - task: activate
+
+  lint:
+    desc: Format source and test files
+    cmds:
+      - flake8 src tests
     pre:
       - task: activate
 

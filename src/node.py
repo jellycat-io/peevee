@@ -49,20 +49,24 @@ class Expression(Node):
 
 
 class BinaryExpression(Expression):
-    def __init__(self, left, operator, right):
-        self.left = left
+    def __init__(self, operator, left, right):
         self.operator = operator
+        self.left = left
         self.right = right
 
     def __str__(self):
-        return str(self.left) + self.operator + str(self.right)
+        return "(" + str(self.left) + self.operator + str(self.right) + ")"
 
 
 class PrimaryExpression(Expression):
     pass
 
 
-class IntegerLiteral(PrimaryExpression):
+class Literal(PrimaryExpression):
+    pass
+
+
+class IntegerLiteral(Literal):
     def __init__(self, value):
         self.value = value
 
@@ -70,7 +74,7 @@ class IntegerLiteral(PrimaryExpression):
         return str(self.value)
 
 
-class FloatLiteral(PrimaryExpression):
+class FloatLiteral(Literal):
     def __init__(self, value):
         self.value = value
 
@@ -78,7 +82,7 @@ class FloatLiteral(PrimaryExpression):
         return str(self.value)
 
 
-class StringLiteral(PrimaryExpression):
+class StringLiteral(Literal):
     def __init__(self, value):
         self.value = value
 

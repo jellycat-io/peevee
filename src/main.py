@@ -8,11 +8,12 @@ from node import NodeEncoder
 from token_parser import Parser
 
 source = """
+42 + 3 - 3
+    3.14 * 2
+    "flareon"
+        "sylveon"
+    "leafeon"
 42
-    3.14
-    "Hello World"
-        "toto"
-10
 """
 
 lexer = Lexer(source)
