@@ -8,6 +8,7 @@ from src.lexer import (
     INT,
     LPAREN,
     MINUS,
+    PERCENT,
     PLUS,
     RPAREN,
     SLASH,
@@ -141,7 +142,10 @@ class ParserTestCase(unittest.TestCase):
             Token(type=RPAREN, literal=')', line=8, column=7),
             Token(type=STAR, literal='*', line=8, column=9),
             Token(type=INT, literal='5', line=8, column=11),
-            Token(type=EOF, literal='', line=9, column=1),
+            Token(type=INT, literal='5', line=9, column=1),
+            Token(type=PERCENT, literal='%', line=9, column=3),
+            Token(type=INT, literal='5', line=9, column=5),
+            Token(type=EOF, literal='', line=10, column=1),
         ]
 
         parser = Parser(tokens)
@@ -195,6 +199,11 @@ class ParserTestCase(unittest.TestCase):
                         IntegerLiteral(5),
                         IntegerLiteral(5),
                     ),
+                    IntegerLiteral(5),
+                ),
+                BinaryExpression(
+                    "%",
+                    IntegerLiteral(5),
                     IntegerLiteral(5),
                 ),
             ]

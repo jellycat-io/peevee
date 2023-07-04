@@ -22,6 +22,7 @@ from lexer import (
     INT,
     LPAREN,
     MINUS,
+    PERCENT,
     PLUS,
     RPAREN,
     SLASH,
@@ -89,13 +90,13 @@ class Parser:
         return self.parse_binary_expression(self.parse_multiplicative_expression, PLUS, MINUS)
 
     def parse_multiplicative_expression(self) -> BinaryExpression:
-        return self.parse_binary_expression(self.parse_primary_expression, STAR, SLASH)
+        return self.parse_binary_expression(self.parse_primary_expression, STAR, SLASH, PERCENT)
 
     def parse_binary_expression(self, builder, *ops) -> BinaryExpression:
         left = builder()
 
         for op in ops:
-            while self.match(op):
+            if self.match(op):
                 operator = self.eat(op)
                 right = builder()
                 left = BinaryExpression(operator.literal, left, right)

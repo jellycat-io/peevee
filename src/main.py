@@ -9,7 +9,7 @@ from token_parser import Parser
 
 source = """
 42 + 3 - 3
-    3.14 * 2
+    3.14 % 2
     "flareon"
         "sylveon"
     "leafeon"
