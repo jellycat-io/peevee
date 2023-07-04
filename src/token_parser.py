@@ -13,7 +13,21 @@ from node import (
     Expression,
     Literal
 )
-from lexer import DEDENT, EOF, FLOAT, INDENT, INT, STRING, MINUS, PLUS, SLASH, STAR, Token
+from lexer import (
+    Token,
+    DEDENT,
+    EOF,
+    FLOAT,
+    INDENT,
+    INT,
+    LPAREN,
+    MINUS,
+    PLUS,
+    RPAREN,
+    SLASH,
+    STAR,
+    STRING,
+)
 
 
 class Parser:
@@ -64,6 +78,13 @@ class Parser:
     def parse_expression(self) -> Expression:
         return self.parse_additive_expression()
 
+    def parse_grouped_expression(self) -> Expression:
+        self.eat(LPAREN)
+        expression = self.parse_expression()
+        self.eat(RPAREN)
+
+        return expression
+
     def parse_additive_expression(self) -> BinaryExpression:
         return self.parse_binary_expression(self.parse_multiplicative_expression, PLUS, MINUS)
 
@@ -82,7 +103,10 @@ class Parser:
         return left
 
     def parse_primary_expression(self) -> PrimaryExpression:
-        return self.parse_literal()
+        if self.match(LPAREN):
+            return self.parse_grouped_expression()
+        else:
+            return self.parse_literal()
 
     def parse_literal(self) -> Literal:
         if self.current_token.type == INT:

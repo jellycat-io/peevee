@@ -6,8 +6,10 @@ from src.lexer import (
     FLOAT,
     INDENT,
     INT,
+    LPAREN,
     MINUS,
     PLUS,
+    RPAREN,
     SLASH,
     STAR,
     STRING,
@@ -132,7 +134,14 @@ class ParserTestCase(unittest.TestCase):
             Token(type=INT, literal='5', line=7, column=5),
             Token(type=PLUS, literal='+', line=7, column=7),
             Token(type=INT, literal='5', line=7, column=9),
-            Token(type=EOF, literal='', line=8, column=1),
+            Token(type=LPAREN, literal='(', line=8, column=1),
+            Token(type=INT, literal='5', line=8, column=2),
+            Token(type=PLUS, literal='+', line=8, column=4),
+            Token(type=INT, literal='5', line=8, column=6),
+            Token(type=RPAREN, literal=')', line=8, column=7),
+            Token(type=STAR, literal='*', line=8, column=9),
+            Token(type=INT, literal='5', line=8, column=11),
+            Token(type=EOF, literal='', line=9, column=1),
         ]
 
         parser = Parser(tokens)
@@ -174,6 +183,15 @@ class ParserTestCase(unittest.TestCase):
                     "+",
                     BinaryExpression(
                         "*",
+                        IntegerLiteral(5),
+                        IntegerLiteral(5),
+                    ),
+                    IntegerLiteral(5),
+                ),
+                BinaryExpression(
+                    "*",
+                    BinaryExpression(
+                        "+",
                         IntegerLiteral(5),
                         IntegerLiteral(5),
                     ),
