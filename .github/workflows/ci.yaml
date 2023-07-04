@@ -38,10 +38,10 @@ jobs:
         run: pip install autopep8
 
       - name: Format code
-        run: autopep8 --in-place --recursive .
+        run: autopep8 --in-place --recursive src tests
 
       - name: Lint code
-        run: flake8
+        run: flake8 src tests
 
       - name: Run tests
         run: pytest
