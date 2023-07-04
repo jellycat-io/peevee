@@ -1,8 +1,5 @@
 import json
-
-
-class Node:
-    pass
+from typing import List
 
 
 class NodeEncoder(json.JSONEncoder):
@@ -16,12 +13,20 @@ class NodeEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
+class Node:
+    pass
+
+
 class Program(Node):
-    def __init__(self, statement_list):
-        self.statement_list = statement_list
+    """
+    <program> ::= { <statement> }
+    """
+
+    def __init__(self, statements: List["Statement"]):
+        self.statements = statements
 
     def __str__(self):
-        return "\n".join(str(statement) for statement in self.statement_list)
+        return f'Program({", ".join(str(statement) for statement in self.statements)})'
 
 
 class Statement(Node):
@@ -29,62 +34,129 @@ class Statement(Node):
 
 
 class BlockStatement(Statement):
-    def __init__(self, statement_list):
-        self.statement_list = statement_list
+    """
+    <block-statement> ::= INDENT { <statement> } DEDENT
+    """
+
+    def __init__(self, statements: List["Statement"]):
+        self.statements = statements
 
     def __str__(self):
-        return "\n\t".join(str(statement) for statement in self.statement_list)
+        return f'BlockStatement({", ".join(str(statement) for statement in self.statements)})'
 
 
 class ExpressionStatement(Statement):
-    def __init__(self, expression):
+    """
+    <expression-statement> ::= <expression>
+    """
+
+    def __init__(self, expression: "Expression"):
         self.expression = expression
 
     def __str__(self):
-        return str(self.expression)
+        return f'ExpressionStatement({str(self.expression)})'
 
 
 class Expression(Node):
     pass
 
 
+class AssignmentExpression(Expression):
+    """
+    <assignment-expression> ::= <variable> = <expression>
+    """
+
+    def __init__(self, identifier: "IdentifierExpression", expression: "Expression"):
+        self.identifier = identifier
+        self.expression = expression
+
+    def __str__(self):
+        return f'AssignmentExpression({self.variable}, {self.expression})'
+
+
 class BinaryExpression(Expression):
-    def __init__(self, operator, left, right):
+    """
+    <binary-expression> ::= <expression> ( ('+' | '-' | '*' | '/') <expression> )
+    """
+
+    def __init__(self, operator: str, left: "Expression", right: "Expression"):
         self.operator = operator
         self.left = left
         self.right = right
 
     def __str__(self):
-        return "(" + str(self.left) + self.operator + str(self.right) + ")"
+        return f'BinaryExpression({self.operator}, {str(self.left)}, {str(self.right)})'
 
 
 class PrimaryExpression(Expression):
+    """
+    <primary-expression> ::= <literal> | <grouped-expression>
+    """
     pass
 
 
-class Literal(PrimaryExpression):
+class GroupedExpression(Expression):
+    """
+    <grouped-expression> ::= '(' <expression> ')'
+    """
+
+    def __init__(self, expression: "Expression"):
+        self.expression = expression
+
+    def __str__(self):
+        return f'GroupedExpression({str(self.expression)})'
+
+
+class Literal(Expression):
+    """
+    <literal> ::= <integer-literal> | <float-literal> | <string-literal>
+    """
     pass
 
 
 class IntegerLiteral(Literal):
-    def __init__(self, value):
+    """
+    <integer-literal> ::= INT
+    """
+
+    def __init__(self, value: int):
         self.value = value
 
     def __str__(self):
-        return str(self.value)
+        return f'IntegerLiteral({self.value})'
 
 
 class FloatLiteral(Literal):
-    def __init__(self, value):
+    """
+    <float-literal> ::= FLOAT
+    """
+
+    def __init__(self, value: float):
         self.value = value
 
     def __str__(self):
-        return str(self.value)
+        return f'FloatLiteral({self.value})'
 
 
 class StringLiteral(Literal):
-    def __init__(self, value):
+    """
+    <string-literal> ::= STRING
+    """
+
+    def __init__(self, value: str):
         self.value = value
 
     def __str__(self):
-        return self.value
+        return f'StringLiteral("{self.value}")'
+
+
+class IdentifierExpression(Expression):
+    """
+    <identifier> ::= STRING
+    """
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def __str__(self):
+        return f'IdentifierExpression({self.name})'

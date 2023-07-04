@@ -1,50 +1,29 @@
-Program
-  : StatementList
-  ;
+<program> ::= { <statement> }
 
-StatementList
-  : Statement
-  | StatementList Statement -> Statement*
-  ;
+<statement> ::= <block-statement> | <expression-statement>
 
-Statement
-  : ExpressionStatement
-  | BlockStatement
-  ;
+<block-statement> ::= INDENT { <statement> } DEDENT
 
-BlockStatement
-  : '{' OptStatementList '}'
-  ;
+<expression-statement> ::= <expression>
 
-ExpressionStatement
-  : Expression
-  ;
+<expression> ::= <additive-expression>
 
-Expression
-  : Literal
-  ;
+<assignment-expression> ::= <variable> = <expression>
 
-AdditiveExpression
-  : MultiplicativeExpression
-  | AdditiveExpression ADDITIVE_OPERATOR MultiplicativeExpression -> MultiplicativeExpression ADDITIVE_OPERATOR MultiplicativeExpression ADDITIVE_OPERATOR MultiplicativeExpression
-  ;
+<additive-expression> ::= <multiplicative-expression> { ('+' | '-') <multiplicative-expression> }
 
-MultiplicativeExpression
-  : PrimaryExpression
-  | MultiplicativeExpression MULTIPLICATIVE_OPERATOR PrimaryExpression -> PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
-  ;
+<multiplicative-expression> ::= <primary-expression> { ('*' | '/') <primary-expression> }
 
-PrimaryExpression
-  : Literal
-  | GroupedExpression
-  ;
+<primary-expression> ::= <literal> | <grouped-expression>
 
-GroupedExpression
-  : Literal
-  ;
+<grouped-expression> ::= '(' <expression> ')'
 
-Literal
-  : IntegerLiteral
-  | FloatLiteral
-  | StringLiteral
-  ;
+<literal> ::= <integer-literal> | <float-literal> | <string-literal>
+
+<integer-literal> ::= INT
+
+<float-literal> ::= FLOAT
+
+<string-literal> ::= STRING
+
+<identifier> ::= STRING
