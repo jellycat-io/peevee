@@ -152,8 +152,10 @@ class Lexer:
                 match = re.match(pattern, line)
                 if match:
                     lexeme = match.group(0)
-                    self.tokens.append(
-                        Token(token_type, lexeme, line_num, column))
+
+                    if token_type is not WHITESPACE:
+                        self.tokens.append(Token(token_type, lexeme, line_num, column))
+
                     line = line[len(lexeme):]
                     column += len(lexeme)
                     matched = True
