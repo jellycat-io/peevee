@@ -4,5 +4,6 @@
   "python.linting.flake8Args": [
     "--ignore=E501"
   ],
+  "editor.formatOnSave": true,
   "python.formatting.provider": "autopep8",
 }
