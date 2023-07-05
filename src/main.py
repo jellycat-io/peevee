@@ -10,6 +10,7 @@ from token_parser import Parser
 source = """
 let pokemon
 let level
+let evo_cond
 
 if (level > 16) then
     pokemon = "ivysaur"
@@ -17,10 +18,10 @@ else
     pokemon = "bulbasaur"
 
 if eevee then
-    if solar_stone then
+    if evo_cond == "solar_stone" then
         eevee = "leafeon"
-    if friendship_with_exchange then eevee = "sylveon"
-    if friendship_at_night then eevee = "umbreon" else eevee = "espeon"
+    if evo_cond == "friendship_with_exchange" then eevee = "sylveon"
+    if evo_cond == "friendship_at_night" then eevee = "umbreon" else eevee = "espeon"
 else eevee = "missingno"
 """
 

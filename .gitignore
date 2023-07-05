@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 
 # Eevee debug
-output.eve.json
+*.eve.json

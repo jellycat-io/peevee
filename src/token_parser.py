@@ -28,6 +28,7 @@ from lexer import (
     DEDENT,
     ELSE,
     EOF,
+    EQ,
     FLOAT,
     GT,
     GT_EQ,
@@ -41,6 +42,7 @@ from lexer import (
     LPAREN,
     MINUS,
     MINUS_ASSIGN,
+    NOT_EQ,
     PERCENT,
     PLUS,
     PLUS_ASSIGN,
@@ -157,7 +159,7 @@ class Parser:
         return expression
 
     def parse_assignment_expression(self) -> AssignmentExpression:
-        left = self.parse_relational_expression()
+        left = self.parse_equality_expression()
 
         if not self.is_assignment_operator(self.current_token.type):
             return left
@@ -168,6 +170,9 @@ class Parser:
             self.parse_assignment_expression()
         )
     
+    def parse_equality_expression(self) -> BinaryExpression:
+        return self.parse_binary_expression(self.parse_relational_expression, EQ, NOT_EQ)
+
     def parse_relational_expression(self) -> BinaryExpression:
         return self.parse_binary_expression(self.parse_additive_expression, LT, LT_EQ, GT, GT_EQ)
 

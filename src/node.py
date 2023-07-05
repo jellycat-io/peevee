@@ -108,7 +108,7 @@ class Expression(Node):
 
 class AssignmentExpression(Expression):
     """
-    <assignment_expression> ::= <relational_expression> [ <assignment_operator> <assignment_expression> ]
+    <assignment_expression> ::= <equality_expression> [ <assignment_operator> <assignment_expression> ]
     """
 
     def __init__(self, operator: str, left: "Expression", right: "AssignmentExpression"):
@@ -122,8 +122,9 @@ class AssignmentExpression(Expression):
 
 class BinaryExpression(Expression):
     """
-    <relational_expression> ::= <binary_expression> <relational_operator> <additive_expression>
-    <additive_expression> ::= <binary_expression> <additive_operator> <multiplicative_expression>
+    <equality_expression> ::= <relational_expression> <equality_operator> <relational_expression>
+    <relational_expression> ::= <additive_expression> <relational_operator> <additive_expression>
+    <additive_expression> ::= <multiplicative_expression> <additive_operator> <multiplicative_expression>
     <multiplicative_expression> ::= <primary_expression> <multiplicative_operator> <primary_expression>
     """
 

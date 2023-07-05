@@ -61,19 +61,25 @@ FALSE = TokenType("FALSE")
 IF = TokenType("IF")
 THEN = TokenType("THEN")
 ELSE = TokenType("ELSE")
+IS = TokenType("IS")
+NOT = TokenType("NOT")
 RETURN = TokenType("RETURN")
+NIL = TokenType("NIL")
 
 keywords = {
+    "else": ELSE,
+    "false": FALSE,
     "fn": FUNCTION,
-    "module": MODULE,
+    "if": IF,
+    "is": IS,
     "import": IMPORT,
     "let": LET,
-    "true": TRUE,
-    "false": FALSE,
-    "if": IF,
-    "then": THEN,
-    "else": ELSE,
+    "module": MODULE,
+    "nil": NIL,
+    "not": NOT,
     "return": RETURN,
+    "true": TRUE,
+    "then": THEN,
 }
 
 
@@ -143,9 +149,18 @@ class Lexer:
             (r"^\}", RBRACE),
             (r"^\[", LBRACKET),
             (r"^\]", RBRACKET),
+            (r"^\!", BANG),
             # -----------------------------------------------
             # Identifiers
             (r"^[a-zA-Z_][a-zA-Z0-9_]*", IDENT),
+            # -----------------------------------------------
+            # Comparison operators
+            (r"^\=\=", EQ),
+            (r"^\!\=", NOT_EQ),
+            (r"^\<\=", LT_EQ),
+            (r"^\>\=", GT_EQ),
+            (r"^\<", LT),
+            (r"^\>", GT),
             # -----------------------------------------------
             # Assignment operators
             (r"^\=", ASSIGN),
@@ -160,13 +175,6 @@ class Lexer:
             (r"^\*", STAR),
             (r"^\/", SLASH),
             (r"^\%", PERCENT),
-            # -----------------------------------------------
-            # Comparison operators
-            (r"^\=\=", EQ),
-            (r"^\!\=", NOT_EQ),
-            (r"^\!", BANG),
-            (r"^\<", LT),
-            (r"^\>", GT),
             # -----------------------------------------------
             # Literals
             (r"^\d+\.\d+", FLOAT),

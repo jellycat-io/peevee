@@ -5,49 +5,55 @@ env:
 
 tasks:
 
-  activate:
+  env:create:
+    cmds:
+      - python -m venv env
+
+  env:activate:
     cmds:
       - source {{.VENV_DIR}}/bin/activate
+    pre:
+      - task: env:create
 
-  install:
+  deps:install:
     desc: Install the project dependencies
     cmds:
       - pip install -r requirements.txt
     pre:
-      - task: activate
+      - task: env:activate
 
-  update_requirements:
+  deps:freeze:
     desc: Update the requirements.txt file
     cmds:
       - echo "" > requirements.txt
       - pip freeze >> requirements.txt
     pre:
-      - task: activate
+      - task: env:activate
 
   fmt:
     desc: Format source and test files
     cmds:
       - autopep8 --in-place --recursive src tests
     pre:
-      - task: activate
+      - task: env:activate
 
   lint:
     desc: Format source and test files
     cmds:
       - flake8 src tests
     pre:
-      - task: activate
+      - task: env:activate
 
   test:
     desc: Run the unit tests
     cmds:
       - pytest
     pre:
-      - task: activate
+      - task: env:activate
 
   run:
     desc: Run the main script
     cmds:
       - python3 src/main.py
     pre:
-      - task: activate
+      - task: env:activate

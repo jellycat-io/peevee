@@ -7,7 +7,10 @@ from src.lexer import (
     COLON,
     COMMA,
     GT_EQ,
+    IS,
     LT_EQ,
+    NIL,
+    NOT,
     PLUS_ASSIGN,
     MINUS_ASSIGN,
     STAR_ASSIGN,
@@ -325,15 +328,16 @@ class ParserTestCase(unittest.TestCase):
         input = (
             "let IDENT=pokemon\\n"
             "let IDENT=level\\n"
-            "if ( IDENT=level > INT=15 ) then\\n"
-            "   IDENT=pokemon = STRING=Ivysaur\\n"
+            "let IDENT=evo_cond\\n"
+            "if ( IDENT=level >= INT=15 ) then\\n"
+            "   IDENT=pokemon = STRING=ivysaur\\n"
             "else\\n"
-            "   IDENT=pokemon = STRING=Bulbasaur\\n"
+            "   IDENT=pokemon = STRING=bulbasaur\\n"
             "if ( IDENT=eevee ) then\\n"
-            "   if ( IDENT=solar_stone ) then\\n"
-            "       IDENT=eevee = STRING=Leafeon\\n"
-            "   if ( IDENT=friendship_plus_exchange ) then IDENT=eevee = STRING=Sylveon\\n"
-            "   if ( IDENT=friendship_at_night ) then IDENT=eevee = STRING=Umbreon else IDENT=eevee = STRING=Espeon\\n"
+            "   if ( IDENT=evo_cond == STRING=solar_stone ) then\\n"
+            "       IDENT=eevee = STRING=leafeon\\n"
+            "   if IDENT=evo_cond == STRING=friendship_plus_exchange then IDENT=eevee = STRING=sylveon\\n"
+            "   if ( IDENT=evo_cond == STRING=friendship_at_night ) then IDENT=eevee = STRING=umbreon else IDENT=eevee = STRING=espeon\\n"
             "else IDENT=eevee = STRING=MissingNo\\n"
         )
 
@@ -348,55 +352,70 @@ class ParserTestCase(unittest.TestCase):
             make_variable_statement([
                 make_variable_declaration(make_identifier("level"), None)
             ]),
+            make_variable_statement([
+                make_variable_declaration(make_identifier("evo_cond"), None)
+            ]),
             make_if_statement(
                 make_binary_expression(
-                    GT,
+                    GT_EQ,
                     make_identifier("level"),
                     make_integer_literal(15)
                 ),
                 make_block_statement([make_expression_statement(make_assignment_expression(
                     ASSIGN,
                     make_identifier("pokemon"),
-                    make_string_literal("Ivysaur")
+                    make_string_literal("ivysaur")
                 ))]),
                 make_block_statement([make_expression_statement(make_assignment_expression(
                     ASSIGN,
                     make_identifier("pokemon"),
-                    make_string_literal("Bulbasaur")
+                    make_string_literal("bulbasaur")
                 ))]),
             ),
             make_if_statement(
                 make_identifier("eevee"),
                 make_block_statement([
                     make_if_statement(
-                        make_identifier("solar_stone"),
+                        make_binary_expression(
+                            EQ,
+                            make_identifier("evo_cond"),
+                            make_string_literal("solar_stone")
+                        ),
                         make_block_statement([make_expression_statement(make_assignment_expression(
                             ASSIGN,
                             make_identifier("eevee"),
-                            make_string_literal("Leafeon")
+                            make_string_literal("leafeon")
                         ))]),
                         None
                     ),
                     make_if_statement(
-                        make_identifier("friendship_plus_exchange"),
+                        make_binary_expression(
+                            EQ,
+                            make_identifier("evo_cond"),
+                            make_string_literal("friendship_plus_exchange")
+                        ),
                         make_expression_statement(make_assignment_expression(
                             ASSIGN,
                             make_identifier("eevee"),
-                            make_string_literal("Sylveon")
+                            make_string_literal("sylveon")
                         )),
                         None
                     ),
                     make_if_statement(
-                        make_identifier("friendship_at_night"),
+                        make_binary_expression(
+                            EQ,
+                            make_identifier("evo_cond"),
+                            make_string_literal("friendship_at_night")
+                        ),
                         make_expression_statement(make_assignment_expression(
                             ASSIGN,
                             make_identifier("eevee"),
-                            make_string_literal("Umbreon")
+                            make_string_literal("umbreon")
                         )),
                         make_expression_statement(make_assignment_expression(
                             ASSIGN,
                             make_identifier("eevee"),
-                            make_string_literal("Espeon")
+                            make_string_literal("espeon")
                         )),
                     ),
                 ]),
@@ -497,9 +516,12 @@ def tokens_from_string(input_string: str) -> List[Token]:
         "true": TRUE,
         "false": FALSE,
         "if": IF,
+        "is": IS,
+        "not": NOT,
         "then": THEN,
         "else": ELSE,
         "return": RETURN,
+        "nil": NIL,
     }
 
     tokens = []
