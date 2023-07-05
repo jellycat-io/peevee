@@ -192,9 +192,13 @@ class Parser:
 
         for op in ops:
             if self.match(op):
-                operator = self.eat(op)
+                operator_string = self.eat(op).literal
+                if operator_string == "is":
+                    operator_string = "=="
+                if operator_string == "not":
+                    operator_string = "!="
                 right = builder()
-                left = BinaryExpression(operator.literal, left, right)
+                left = BinaryExpression(operator_string, left, right)
 
         return left
 

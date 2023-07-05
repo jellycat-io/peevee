@@ -162,6 +162,10 @@ class ParserTestCase(unittest.TestCase):
             "INT=5 * ( INT=5 + INT=5 )\\n"
             "INT=5 % INT=5\\n"
             "IDENT=foo + IDENT=bar\\n"
+            "IDENT=foo == IDENT=bar\\n"
+            "IDENT=foo != IDENT=bar\\n"
+            "IDENT=foo is IDENT=bar\\n"
+            "IDENT=foo not IDENT=bar\\n"
         )
 
         tokens = tokens_from_string(input)
@@ -210,6 +214,26 @@ class ParserTestCase(unittest.TestCase):
             )),
             make_expression_statement(make_binary_expression(
                 PLUS,
+                make_identifier("foo"),
+                make_identifier("bar")
+            )),
+            make_expression_statement(make_binary_expression(
+                EQ,
+                make_identifier("foo"),
+                make_identifier("bar")
+            )),
+            make_expression_statement(make_binary_expression(
+                NOT_EQ,
+                make_identifier("foo"),
+                make_identifier("bar")
+            )),
+            make_expression_statement(make_binary_expression(
+                EQ,
+                make_identifier("foo"),
+                make_identifier("bar")
+            )),
+            make_expression_statement(make_binary_expression(
+                NOT_EQ,
                 make_identifier("foo"),
                 make_identifier("bar")
             )),
@@ -337,7 +361,7 @@ class ParserTestCase(unittest.TestCase):
             "let IDENT=pokemon\\n"
             "let IDENT=level\\n"
             "let IDENT=evo_cond\\n"
-            "if ( IDENT=level >= INT=15 == true ) then\\n"
+            "if ( IDENT=level >= INT=15 is true ) then\\n"
             "   IDENT=pokemon = STRING=ivysaur\\n"
             "else\\n"
             "   IDENT=pokemon = STRING=bulbasaur\\n"
@@ -540,8 +564,8 @@ def tokens_from_string(input_string: str) -> List[Token]:
         "true": TRUE,
         "false": FALSE,
         "if": IF,
-        "is": IS,
-        "not": NOT,
+        "is": EQ,
+        "not": NOT_EQ,
         "then": THEN,
         "else": ELSE,
         "return": RETURN,
