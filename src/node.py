@@ -108,7 +108,7 @@ class Expression(Node):
 
 class AssignmentExpression(Expression):
     """
-    <assignment_expression> ::= <equality_expression> [ <assignment_operator> <assignment_expression> ]
+    <assignment_expression> ::= <logical_or_expression> [ <assignment_operator> <assignment_expression> ]
     """
 
     def __init__(self, operator: str, left: "Expression", right: "AssignmentExpression"):
@@ -135,6 +135,21 @@ class BinaryExpression(Expression):
 
     def __str__(self):
         return f'BinaryExpression({self.operator}, {str(self.left)}, {str(self.right)})'
+
+
+class LogicalExpression(Expression):
+    """
+    <logical_and_expression> ::= <equality_expression> AND <equality_expression>
+    <logical_or_expression> ::= <logical_and_expression> OR <logical_and_expression>
+    """
+
+    def __init__(self, operator: str, left: "Expression", right: "Expression"):
+        self.operator = operator
+        self.left = left
+        self.right = right
+
+    def __str__(self):
+        return f'LogicalExpression({self.operator}, {str(self.left)}, {str(self.right)})'
 
 
 class PrimaryExpression(Expression):

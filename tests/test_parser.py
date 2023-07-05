@@ -2,6 +2,7 @@ from typing import List
 import unittest
 
 from src.lexer import (
+    AND,
     ASSIGN,
     BANG,
     COLON,
@@ -34,6 +35,7 @@ from src.lexer import (
     MINUS,
     MODULE,
     NOT_EQ,
+    OR,
     PERCENT,
     PLUS,
     RBRACE,
@@ -60,6 +62,7 @@ from src.node import (
     Identifier,
     IfStatement,
     IntegerLiteral,
+    LogicalExpression,
     NullLiteral,
     Program,
     Statement,
@@ -234,6 +237,135 @@ class ParserTestCase(unittest.TestCase):
                 NOT_EQ,
                 make_identifier("foo"),
                 make_identifier("bar")
+            )),
+        ])
+
+        self.assertEqual(str(ast), str(expected_ast))
+
+    def test_parse_logical_expression(self):
+        input = (
+            "INT=5 == INT=5 and INT=5 < INT=10\\n"
+            "INT=5 == INT=5 or INT=5 < INT=10\\n"
+            "( INT=5 == INT=5 && INT=5 < INT=10 ) and INT=5 > INT=1\\n"
+            "( INT=5 == INT=5 and INT=5 < INT=10 ) or INT=5 > INT=1\\n"
+            "( INT=5 == INT=5 || INT=5 < INT=10 ) or INT=5 > INT=1\\n"
+            "( INT=5 == INT=5 or INT=5 < INT=10 ) and INT=5 > INT=1\\n"
+        )
+
+        tokens = tokens_from_string(input)
+        parser = Parser(tokens)
+        ast = parser.parse()
+
+        expected_ast = Program([
+            make_expression_statement(make_logical_expression(
+                "and",
+                make_binary_expression(
+                    EQ,
+                    make_integer_literal(5),
+                    make_integer_literal(5)
+                ),
+                make_binary_expression(
+                    LT,
+                    make_integer_literal(5),
+                    make_integer_literal(10)
+                ),
+            )),
+            make_expression_statement(make_logical_expression(
+                "or",
+                make_binary_expression(
+                    EQ,
+                    make_integer_literal(5),
+                    make_integer_literal(5)
+                ),
+                make_binary_expression(
+                    LT,
+                    make_integer_literal(5),
+                    make_integer_literal(10)
+                ),
+            )),
+            make_expression_statement(make_logical_expression(
+                "and",
+                make_logical_expression(
+                    "and",
+                    make_binary_expression(
+                        EQ,
+                        make_integer_literal(5),
+                        make_integer_literal(5)
+                    ),
+                    make_binary_expression(
+                        LT,
+                        make_integer_literal(5),
+                        make_integer_literal(10)
+                    ),
+                ),
+                make_binary_expression(
+                    GT,
+                    make_integer_literal(5),
+                    make_integer_literal(1)
+                ),
+            )),
+            make_expression_statement(make_logical_expression(
+                "or",
+                make_logical_expression(
+                    "and",
+                    make_binary_expression(
+                        EQ,
+                        make_integer_literal(5),
+                        make_integer_literal(5)
+                    ),
+                    make_binary_expression(
+                        LT,
+                        make_integer_literal(5),
+                        make_integer_literal(10)
+                    ),
+                ),
+                make_binary_expression(
+                    GT,
+                    make_integer_literal(5),
+                    make_integer_literal(1)
+                ),
+            )),
+            make_expression_statement(make_logical_expression(
+                "or",
+                make_logical_expression(
+                    "or",
+                    make_binary_expression(
+                        EQ,
+                        make_integer_literal(5),
+                        make_integer_literal(5)
+                    ),
+                    make_binary_expression(
+                        LT,
+                        make_integer_literal(5),
+                        make_integer_literal(10)
+                    ),
+                ),
+                make_binary_expression(
+                    GT,
+                    make_integer_literal(5),
+                    make_integer_literal(1)
+                ),
+            )),
+            make_expression_statement(make_logical_expression(
+                "and",
+                make_logical_expression(
+                    "or",
+                    make_binary_expression(
+                        EQ,
+                        make_integer_literal(5),
+                        make_integer_literal(5)
+                    ),
+                    make_binary_expression(
+                        LT,
+                        make_integer_literal(5),
+                        make_integer_literal(10)
+                    ),
+                ),
+                make_binary_expression(
+                    GT,
+                    make_integer_literal(5),
+                    make_integer_literal(1)
+                ),
             )),
         ])
 
@@ -496,6 +628,10 @@ def make_binary_expression(operator: str, left: Expression, right: Expression) -
     return BinaryExpression(operator, left, right)
 
 
+def make_logical_expression(operator: str, left: Expression, right: Expression) -> LogicalExpression:
+    return LogicalExpression(operator, left, right)
+
+
 def make_integer_literal(value: int) -> IntegerLiteral:
     return IntegerLiteral(value)
 
@@ -546,6 +682,8 @@ def tokens_from_string(input_string: str) -> List[Token]:
         "<=": LT_EQ,
         ">": GT,
         ">=": GT_EQ,
+        "&&": AND,
+        "||": OR,
         ",": COMMA,
         ";": SEMI,
         ":": COLON,
@@ -564,6 +702,8 @@ def tokens_from_string(input_string: str) -> List[Token]:
         "if": IF,
         "is": EQ,
         "not": NOT_EQ,
+        "and": AND,
+        "or": OR,
         "then": THEN,
         "else": ELSE,
         "return": RETURN,

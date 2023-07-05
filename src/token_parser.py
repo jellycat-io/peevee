@@ -13,6 +13,7 @@ from node import (
     IfStatement,
     IntegerLiteral,
     Literal,
+    LogicalExpression,
     Node,
     NullLiteral,
     PrimaryExpression,
@@ -25,6 +26,7 @@ from node import (
 from lexer import (
     Token,
     TokenType,
+    AND,
     ASSIGN,
     COMMA,
     DEDENT,
@@ -47,6 +49,7 @@ from lexer import (
     MINUS_ASSIGN,
     NIL,
     NOT_EQ,
+    OR,
     PERCENT,
     PLUS,
     PLUS_ASSIGN,
@@ -164,7 +167,7 @@ class Parser:
         return expression
 
     def parse_assignment_expression(self) -> AssignmentExpression:
-        left = self.parse_equality_expression()
+        left = self.parse_logical_or_expression()
 
         if not self.is_assignment_operator(self.current_token.type):
             return left
@@ -174,6 +177,26 @@ class Parser:
             self.check_valid_assignment_target(left),
             self.parse_assignment_expression()
         )
+
+    def parse_logical_or_expression(self) -> LogicalExpression:
+        return self.parse_logical_expression(self.parse_logical_and_expression, OR)
+
+    def parse_logical_and_expression(self) -> LogicalExpression:
+        return self.parse_logical_expression(self.parse_equality_expression, AND)
+
+    def parse_logical_expression(self, builder: Callable[[], LogicalExpression], op: TokenType) -> LogicalExpression:
+        left = builder()
+
+        if self.match(op):
+            operator_string = self.eat(op).literal
+            if operator_string == "&&":
+                operator_string = "and"
+            if operator_string == "||":
+                operator_string = "or"
+            right = builder()
+            left = LogicalExpression(operator_string, left, right)
+
+        return left
 
     def parse_equality_expression(self) -> BinaryExpression:
         return self.parse_binary_expression(self.parse_relational_expression, EQ, NOT_EQ)

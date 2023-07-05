@@ -43,6 +43,8 @@ LT = TokenType("<")
 LT_EQ = TokenType("<=")
 GT = TokenType(">")
 GT_EQ = TokenType(">=")
+AND = TokenType("&&")
+OR = TokenType("||")
 COMMA = TokenType(",")
 SEMI = TokenType(";")
 COLON = TokenType(":")
@@ -65,6 +67,7 @@ RETURN = TokenType("RETURN")
 NIL = TokenType("NIL")
 
 keywords = {
+    "and": AND,
     "else": ELSE,
     "false": FALSE,
     "fn": FUNCTION,
@@ -75,6 +78,7 @@ keywords = {
     "module": MODULE,
     "nil": NIL,
     "not": NOT_EQ,
+    "or": OR,
     "return": RETURN,
     "true": TRUE,
     "then": THEN,
@@ -137,6 +141,10 @@ class Lexer:
             # Comments
             (r"\^#[^\n]*", COMMENT),
             # -----------------------------------------------
+            # Logical operators
+            # -----------------------------------------------
+            (r"^\&\&", AND),
+            (r"^\|\|", OR),
             # Comparison operators
             (r"^\=\=", EQ),
             (r"^\!\=", NOT_EQ),

@@ -17,7 +17,7 @@ if (level > 16 is true) then
 else
     pokemon = "bulbasaur"
 
-if eevee != nil then
+if eevee != nil and evo_cond not nil then
     if evo_cond == "solar_stone" then
         eevee = "leafeon"
     if evo_cond == "friendship_with_exchange" then eevee = "sylveon"
