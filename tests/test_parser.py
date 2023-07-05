@@ -6,6 +6,8 @@ from src.lexer import (
     BANG,
     COLON,
     COMMA,
+    GT_EQ,
+    LT_EQ,
     PLUS_ASSIGN,
     MINUS_ASSIGN,
     STAR_ASSIGN,
@@ -322,15 +324,16 @@ class ParserTestCase(unittest.TestCase):
     def test_parse_if_statements(self):
         input = (
             "let IDENT=pokemon\\n"
-            "if INT=16 then\\n"
+            "let IDENT=level\\n"
+            "if ( IDENT=level > INT=15 ) then\\n"
             "   IDENT=pokemon = STRING=Ivysaur\\n"
             "else\\n"
             "   IDENT=pokemon = STRING=Bulbasaur\\n"
-            "if IDENT=eevee then\\n"
-            "   if IDENT=solar_stone then\\n"
+            "if ( IDENT=eevee ) then\\n"
+            "   if ( IDENT=solar_stone ) then\\n"
             "       IDENT=eevee = STRING=Leafeon\\n"
-            "   if IDENT=friendship_plus_exchange then IDENT=eevee = STRING=Sylveon\\n"
-            "   if IDENT=friendship_at_night then IDENT=eevee = STRING=Umbreon else IDENT=eevee = STRING=Espeon\\n"
+            "   if ( IDENT=friendship_plus_exchange ) then IDENT=eevee = STRING=Sylveon\\n"
+            "   if ( IDENT=friendship_at_night ) then IDENT=eevee = STRING=Umbreon else IDENT=eevee = STRING=Espeon\\n"
             "else IDENT=eevee = STRING=MissingNo\\n"
         )
 
@@ -342,8 +345,15 @@ class ParserTestCase(unittest.TestCase):
             make_variable_statement([
                 make_variable_declaration(make_identifier("pokemon"), None)
             ]),
+            make_variable_statement([
+                make_variable_declaration(make_identifier("level"), None)
+            ]),
             make_if_statement(
-                make_integer_literal(16),
+                make_binary_expression(
+                    GT,
+                    make_identifier("level"),
+                    make_integer_literal(15)
+                ),
                 make_block_statement([make_expression_statement(make_assignment_expression(
                     ASSIGN,
                     make_identifier("pokemon"),
@@ -468,7 +478,9 @@ def tokens_from_string(input_string: str) -> List[Token]:
         "==": EQ,
         "!=": NOT_EQ,
         "<": LT,
+        "<=": LT_EQ,
         ">": GT,
+        ">=": GT_EQ,
         ",": COMMA,
         ";": SEMI,
         ":": COLON,

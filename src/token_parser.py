@@ -29,11 +29,15 @@ from lexer import (
     ELSE,
     EOF,
     FLOAT,
+    GT,
+    GT_EQ,
     IDENT,
     IF,
     INDENT,
     INT,
     LET,
+    LT,
+    LT_EQ,
     LPAREN,
     MINUS,
     MINUS_ASSIGN,
@@ -153,7 +157,7 @@ class Parser:
         return expression
 
     def parse_assignment_expression(self) -> AssignmentExpression:
-        left = self.parse_additive_expression()
+        left = self.parse_relational_expression()
 
         if not self.is_assignment_operator(self.current_token.type):
             return left
@@ -163,6 +167,9 @@ class Parser:
             self.check_valid_assignment_target(left),
             self.parse_assignment_expression()
         )
+    
+    def parse_relational_expression(self) -> BinaryExpression:
+        return self.parse_binary_expression(self.parse_additive_expression, LT, LT_EQ, GT, GT_EQ)
 
     def parse_additive_expression(self) -> BinaryExpression:
         return self.parse_binary_expression(self.parse_multiplicative_expression, PLUS, MINUS)
@@ -182,7 +189,12 @@ class Parser:
         return left
 
     def parse_left_hand_side_expression(self) -> Expression:
-        return self.parse_identifier()
+        if self.match(IDENT):
+            return self.parse_identifier()
+        else:
+            raise SyntaxError(
+                f"[{self.current_token.line}:{self.current_token.column}] Unexpected token: {self.current_token.type}"
+            )
 
     def parse_primary_expression(self) -> PrimaryExpression:
         if self.is_literal(self.current_token.type):

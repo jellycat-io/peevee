@@ -9,11 +9,12 @@ from token_parser import Parser
 
 source = """
 let pokemon
+let level
 
-if 16 then
-    pokemon = "bulbasaur"
-else
+if (level > 16) then
     pokemon = "ivysaur"
+else
+    pokemon = "bulbasaur"
 
 if eevee then
     if solar_stone then
@@ -34,5 +35,5 @@ ast = parser.parse()
 ast = json.dumps(ast, cls=NodeEncoder, indent=2)
 print(highlight(ast, JsonLexer(), TerminalFormatter()))
 
-with open("output.json", "w") as file:
+with open("output.eve.json", "w") as file:
     file.write(ast)

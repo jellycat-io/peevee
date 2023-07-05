@@ -19,7 +19,7 @@ class Node:
 
 class Program(Node):
     """
-    <program> ::= <statements>
+    <program> ::= statements EOF
     """
 
     def __init__(self, statements: List["Statement"]):
@@ -30,18 +30,12 @@ class Program(Node):
 
 
 class Statement(Node):
-    """
-    <statement> ::= <block-statement>
-              | <expression-statement>
-              | <variable-statement>
-              | <if-statement>
-    """
     pass
 
 
 class BlockStatement(Statement):
     """
-    <block-statement> ::= "INDENT" <statements> "DEDENT"
+    <block_statement> ::= INDENT statements DEDENT
     """
 
     def __init__(self, statements: List["Statement"]):
@@ -51,9 +45,54 @@ class BlockStatement(Statement):
         return f'BlockStatement({", ".join(str(statement) for statement in self.statements)})'
 
 
+class VariableStatement(Statement):
+    """
+    <variable_statement> ::= LET variable_declaration_list
+    """
+
+    def __init__(self, declarations: List["VariableDeclaration"]):
+        self.declarations = declarations
+
+    def __str__(self):
+        return f'VariableStatement({", ".join(str(declaration) for declaration in self.declarations)})'
+
+
+class VariableDeclaration(Node):
+    """
+    <variable_declaration> ::= identifier [ ASSIGN assignment_expression ]
+    """
+
+    def __init__(self, identifier: "Identifier", initializer: "Expression" = None):
+        self.identifier = identifier
+        self.initializer = initializer
+
+    def __str__(self):
+        if self.initializer:
+            return f'VariableDeclaration({str(self.identifier)}, {str(self.initializer)})'
+        else:
+            return f'VariableDeclaration({str(self.identifier)})'
+
+
+class IfStatement(Statement):
+    """
+    <if_statement> ::= IF expression THEN statement [ ELSE statement ]
+    """
+
+    def __init__(self, condition: "Expression", consequent: "Statement", alternate: "Statement" = None):
+        self.condition = condition
+        self.consequent = consequent
+        self.alternate = alternate
+
+    def __str__(self):
+        if self.alternate:
+            return f'IfStatement({str(self.condition)}, {str(self.consequent)}, {str(self.alternate)})'
+        else:
+            return f'IfStatement({str(self.condition)}, {str(self.consequent)})'
+
+
 class ExpressionStatement(Statement):
     """
-    <expression-statement> ::= <expression>
+    <expression_statement> ::= expression
     """
 
     def __init__(self, expression: "Expression"):
@@ -63,68 +102,29 @@ class ExpressionStatement(Statement):
         return f'ExpressionStatement({str(self.expression)})'
 
 
-class VariableStatement(Statement):
-    """
-    <variable-statement> ::= "LET" <variable-declaration-list>
-    """
-
-    def __init__(self, declarations: List["VariableDeclaration"]):
-        self.declarations = declarations
-
-    def __str__(self):
-        return f'VariableStatement({", ".join(str(declaration) for declaration in self.declarations)})'
-    
-
-class IfStatement(Statement):
-    """
-    <if-statement> ::= "if" <expression> "then" <statement> ["else" <statement>]
-    """
-
-    def __init__(self, condition: "Expression", consequent: "Statement", alternate: "Statement" = None):
-        self.condition = condition
-        self.consequent = consequent
-        self.alternate = alternate
-
-    def __str__(self):
-        alternate_part = f', alternate={self.alternate}' if self.alternate else ''
-        return f'IfStatement(condition={self.condition}, consequent={self.consequent}{alternate_part})'
-
-
 class Expression(Node):
     pass
 
 
-class VariableDeclaration(Expression):
-    """
-    <variable-declaration> ::= <identifier> ["=" <variable-initializer>]
-    """
-
-    def __init__(self, identifier: "Identifier", initializer: "Expression"):
-        self.identifier = identifier
-        self.initializer = initializer
-
-    def __str__(self):
-        return f'VariableDeclaration({self.identifier}, {self.initializer})'
-
-
 class AssignmentExpression(Expression):
     """
-    <assignment-expression> ::= <additive-expression> [<assignment-operator> <assignment-expression>]
+    <assignment_expression> ::= <relational_expression> [ <assignment_operator> <assignment_expression> ]
     """
 
-    def __init__(self, operator: str, identifier: "Identifier", expression: "Expression"):
+    def __init__(self, operator: str, left: "Expression", right: "AssignmentExpression"):
         self.operator = operator
-        self.identifier = identifier
-        self.expression = expression
+        self.left = left
+        self.right = right
 
     def __str__(self):
-        return f'AssignmentExpression({self.operator}, {self.identifier}, {self.expression})'
+        return f'AssignmentExpression({self.operator}, {str(self.left)}, {str(self.right)})'
 
 
 class BinaryExpression(Expression):
     """
-    <additive-expression> ::= <multiplicative-expression> {("+" | "-") <multiplicative-expression>}
-    <multiplicative-expression> ::= <primary-expression> {("*" | "/" | "%") <primary-expression>}
+    <relational_expression> ::= <binary_expression> <relational_operator> <additive_expression>
+    <additive_expression> ::= <binary_expression> <additive_operator> <multiplicative_expression>
+    <multiplicative_expression> ::= <primary_expression> <multiplicative_operator> <primary_expression>
     """
 
     def __init__(self, operator: str, left: "Expression", right: "Expression"):
@@ -138,14 +138,19 @@ class BinaryExpression(Expression):
 
 class PrimaryExpression(Expression):
     """
-    <primary-expression> ::= <literal> | <grouped-expression> | <identifier>
+    <primary_expression> ::= <literal> | <grouped_expression> | <left_hand_side_expression>
     """
-    pass
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return f'PrimaryExpression({str(self.value)})'
 
 
 class GroupedExpression(Expression):
     """
-    <grouped-expression> ::= "(" <expression> ")"
+    <grouped_expression> ::= LPAREN expression RPAREN
     """
 
     def __init__(self, expression: "Expression"):
@@ -156,55 +161,52 @@ class GroupedExpression(Expression):
 
 
 class Literal(Expression):
-    """
-    <literal> ::= <integer-literal> | <float-literal> | <string-literal>
-    """
     pass
 
 
 class IntegerLiteral(Literal):
     """
-    <integer-literal> ::= INT
+    <literal> ::= INT
     """
 
     def __init__(self, value: int):
         self.value = value
 
     def __str__(self):
-        return f'IntegerLiteral({self.value})'
+        return f'IntegerLiteral({str(self.value)})'
 
 
 class FloatLiteral(Literal):
     """
-    <float-literal> ::= FLOAT
+    <literal> ::= FLOAT
     """
 
     def __init__(self, value: float):
         self.value = value
 
     def __str__(self):
-        return f'FloatLiteral({self.value})'
+        return f'FloatLiteral({str(self.value)})'
 
 
 class StringLiteral(Literal):
     """
-    <string-literal> ::= STRING
+    <literal> ::= STRING
     """
 
     def __init__(self, value: str):
         self.value = value
 
     def __str__(self):
-        return f'StringLiteral("{self.value}")'
+        return f'StringLiteral({str(self.value)})'
 
 
 class Identifier(Expression):
     """
-    <identifier> ::= IDENT
+    <left_hand_side_expression> ::= IDENT
     """
 
     def __init__(self, name: str):
         self.name = name
 
     def __str__(self):
-        return f'Identifier({self.name})'
+        return f'Identifier({str(self.name)})'
