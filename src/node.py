@@ -30,6 +30,12 @@ class Program(Node):
 
 
 class Statement(Node):
+    """
+    <statement> ::= <block-statement>
+              | <expression-statement>
+              | <variable-statement>
+              | <if-statement>
+    """
     pass
 
 
@@ -67,6 +73,21 @@ class VariableStatement(Statement):
 
     def __str__(self):
         return f'VariableStatement({", ".join(str(declaration) for declaration in self.declarations)})'
+    
+
+class IfStatement(Statement):
+    """
+    <if-statement> ::= "if" <expression> "then" <statement> ["else" <statement>]
+    """
+
+    def __init__(self, condition: "Expression", consequent: "Statement", alternate: "Statement" = None):
+        self.condition = condition
+        self.consequent = consequent
+        self.alternate = alternate
+
+    def __str__(self):
+        alternate_part = f', alternate={self.alternate}' if self.alternate else ''
+        return f'IfStatement(condition={self.condition}, consequent={self.consequent}{alternate_part})'
 
 
 class Expression(Node):

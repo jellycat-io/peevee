@@ -1,40 +1,39 @@
 <program> ::= <statements>
 
-<statements> ::= <statement> <statements> | ε
+<statements> ::= { <statement> }
 
 <statement> ::= <block-statement>
-              | <variable-statement>
               | <expression-statement>
+              | <variable-statement>
+              | <if-statement>
 
 <block-statement> ::= "INDENT" <statements> "DEDENT"
 
+<expression-statement> ::= <expression>
+
 <variable-statement> ::= "LET" <variable-declaration-list>
 
-<variable-declaration-list> ::= <variable-declaration> {"," <variable-declaration>}
+<variable-declaration-list> ::= <variable-declaration> { "," <variable-declaration> }
 
 <variable-declaration> ::= <identifier> ["=" <variable-initializer>]
 
-<variable-initializer> ::= <assignment-expression>
+<variable-initializer> ::= <expression>
 
-<expression-statement> ::= <expression>
+<if-statement> ::= "if" <expression> "then" <statement> ["else" <statement>]
 
 <expression> ::= <assignment-expression>
 
 <assignment-expression> ::= <additive-expression> [<assignment-operator> <assignment-expression>]
 
-<assignment-operator> ::= "="
-                        | "+="
-                        | "-="
-                        | "*="
-                        | "/="
-
 <additive-expression> ::= <multiplicative-expression> {("+" | "-") <multiplicative-expression>}
 
 <multiplicative-expression> ::= <primary-expression> {("*" | "/" | "%") <primary-expression>}
 
+<assignment-operator> ::= "="
+
 <primary-expression> ::= <literal>
-                       | <identifier>
                        | <grouped-expression>
+                       | <identifier>
 
 <grouped-expression> ::= "(" <expression> ")"
 

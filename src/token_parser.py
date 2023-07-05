@@ -9,6 +9,7 @@ from node import (
     FloatLiteral,
     GroupedExpression,
     Identifier,
+    IfStatement,
     IntegerLiteral,
     Literal,
     Node,
@@ -25,9 +26,11 @@ from lexer import (
     ASSIGN,
     COMMA,
     DEDENT,
+    ELSE,
     EOF,
     FLOAT,
     IDENT,
+    IF,
     INDENT,
     INT,
     LET,
@@ -43,6 +46,7 @@ from lexer import (
     STAR,
     STAR_ASSIGN,
     STRING,
+    THEN,
 )
 
 
@@ -53,6 +57,8 @@ class Parser:
         self.current_token = self.tokens[self.current_token_idx]
 
     def parse(self):
+        if len(self.tokens) == 0:
+            return
         return self.parse_program()
 
     def parse_program(self) -> Program:
@@ -73,6 +79,8 @@ class Parser:
             return self.parse_block_statement()
         elif self.match(LET):
             return self.parse_variable_statement()
+        elif self.match(IF):
+            return self.parse_if_statement()
 
         return self.parse_expression_statement()
 
@@ -116,6 +124,19 @@ class Parser:
     def parse_variable_initializer(self) -> AssignmentExpression:
         self.eat(ASSIGN)
         return self.parse_assignment_expression()
+    
+    def parse_if_statement(self) -> IfStatement:
+        self.eat(IF)
+        condition = self.parse_expression()
+        self.eat(THEN)
+        consequent = self.parse_statement()
+        if self.match(ELSE):
+            self.eat(ELSE)
+            alternate = self.parse_statement()
+        else:
+            alternate = None
+
+        return IfStatement(condition, consequent, alternate)
 
     def parse_expression_statement(self) -> ExpressionStatement:
         expression = self.parse_expression()
@@ -255,7 +276,7 @@ class Parser:
             )
 
     def match(self, token_type: TokenType) -> bool:
-        return self.current_token.type == token_type
+        return self.current_token is not None and self.current_token.type == token_type
 
     def is_at_end(self) -> bool:
         return self.current_token is None or self.current_token.type == EOF

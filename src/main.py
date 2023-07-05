@@ -7,14 +7,21 @@ from lexer import Lexer
 from node import NodeEncoder
 from token_parser import Parser
 
-source = (
-    "let x = 42\n"
-    "let foo = bar\n"
-    "let x, y\n"
-    "let x, y = 42\n"
-    "let x = 40 + 2\n"
-    'let x = y = "eevee"'
-)
+source = """
+let pokemon
+
+if 16 then
+    pokemon = "bulbasaur"
+else
+    pokemon = "ivysaur"
+
+if eevee then
+    if solar_stone then
+        eevee = "leafeon"
+    if friendship_with_exchange then eevee = "sylveon"
+    if friendship_at_night then eevee = "umbreon" else eevee = "espeon"
+else eevee = "missingno"
+"""
 
 lexer = Lexer(source)
 for token in lexer.get_tokens():
@@ -26,3 +33,6 @@ ast = parser.parse()
 
 ast = json.dumps(ast, cls=NodeEncoder, indent=2)
 print(highlight(ast, JsonLexer(), TerminalFormatter()))
+
+with open("output.json", "w") as file:
+    file.write(ast)

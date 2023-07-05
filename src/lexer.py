@@ -57,6 +57,7 @@ LET = TokenType("LET")
 TRUE = TokenType("TRUE")
 FALSE = TokenType("FALSE")
 IF = TokenType("IF")
+THEN = TokenType("THEN")
 ELSE = TokenType("ELSE")
 RETURN = TokenType("RETURN")
 
@@ -68,6 +69,7 @@ keywords = {
     "true": TRUE,
     "false": FALSE,
     "if": IF,
+    "then": THEN,
     "else": ELSE,
     "return": RETURN,
 }

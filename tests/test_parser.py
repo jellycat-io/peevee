@@ -1,3 +1,4 @@
+from typing import List
 import unittest
 
 from src.lexer import (
@@ -40,6 +41,7 @@ from src.lexer import (
     SLASH,
     STAR,
     STRING,
+    THEN,
     TRUE,
     Token,
 )
@@ -47,12 +49,15 @@ from src.lexer import (
 from src.node import (
     AssignmentExpression,
     BinaryExpression,
+    BlockStatement,
+    Expression,
     ExpressionStatement,
     FloatLiteral,
     Identifier,
+    IfStatement,
     IntegerLiteral,
     Program,
-    BlockStatement,
+    Statement,
     StringLiteral,
     VariableDeclaration,
     VariableStatement,
@@ -314,48 +319,133 @@ class ParserTestCase(unittest.TestCase):
 
         self.assertEqual(str(ast), str(expected_ast))
 
+    def test_parse_if_statements(self):
+        input = (
+            "let IDENT=pokemon\\n"
+            "if INT=16 then\\n"
+            "   IDENT=pokemon = STRING=Ivysaur\\n"
+            "else\\n"
+            "   IDENT=pokemon = STRING=Bulbasaur\\n"
+            "if IDENT=eevee then\\n"
+            "   if IDENT=solar_stone then\\n"
+            "       IDENT=eevee = STRING=Leafeon\\n"
+            "   if IDENT=friendship_plus_exchange then IDENT=eevee = STRING=Sylveon\\n"
+            "   if IDENT=friendship_at_night then IDENT=eevee = STRING=Umbreon else IDENT=eevee = STRING=Espeon\\n"
+            "else IDENT=eevee = STRING=MissingNo\\n"
+        )
 
-def make_block_statement(statements):
+        tokens = tokens_from_string(input)
+        parser = Parser(tokens)
+        ast = parser.parse()
+
+        expected_ast = Program([
+            make_variable_statement([
+                make_variable_declaration(make_identifier("pokemon"), None)
+            ]),
+            make_if_statement(
+                make_integer_literal(16),
+                make_block_statement([make_expression_statement(make_assignment_expression(
+                    ASSIGN,
+                    make_identifier("pokemon"),
+                    make_string_literal("Ivysaur")
+                ))]),
+                make_block_statement([make_expression_statement(make_assignment_expression(
+                    ASSIGN,
+                    make_identifier("pokemon"),
+                    make_string_literal("Bulbasaur")
+                ))]),
+            ),
+            make_if_statement(
+                make_identifier("eevee"),
+                make_block_statement([
+                    make_if_statement(
+                        make_identifier("solar_stone"),
+                        make_block_statement([make_expression_statement(make_assignment_expression(
+                            ASSIGN,
+                            make_identifier("eevee"),
+                            make_string_literal("Leafeon")
+                        ))]),
+                        None
+                    ),
+                    make_if_statement(
+                        make_identifier("friendship_plus_exchange"),
+                        make_expression_statement(make_assignment_expression(
+                            ASSIGN,
+                            make_identifier("eevee"),
+                            make_string_literal("Sylveon")
+                        )),
+                        None
+                    ),
+                    make_if_statement(
+                        make_identifier("friendship_at_night"),
+                        make_expression_statement(make_assignment_expression(
+                            ASSIGN,
+                            make_identifier("eevee"),
+                            make_string_literal("Umbreon")
+                        )),
+                        make_expression_statement(make_assignment_expression(
+                            ASSIGN,
+                            make_identifier("eevee"),
+                            make_string_literal("Espeon")
+                        )),
+                    ),
+                ]),
+                make_expression_statement(make_assignment_expression(
+                    ASSIGN,
+                    make_identifier("eevee"),
+                    make_string_literal("MissingNo")
+                )),
+            ),
+        ])
+
+        self.assertEqual(str(ast), str(expected_ast))
+
+
+def make_block_statement(statements: List[Statement]) -> BlockStatement:
     return BlockStatement(statements)
 
 
-def make_expression_statement(expression):
+def make_expression_statement(expression: Expression) -> ExpressionStatement:
     return ExpressionStatement(expression)
 
 
-def make_variable_statement(declarations):
+def make_variable_statement(declarations: List[VariableDeclaration]) -> VariableStatement:
     return VariableStatement(declarations)
 
 
-def make_assignment_expression(operator, identifier, expression):
+def make_if_statement(condition: Expression, consequent: Statement, alternative: Statement) -> IfStatement:
+    return IfStatement(condition, consequent, alternative)
+
+
+def make_assignment_expression(operator: str, identifier: Identifier, expression: Expression) -> AssignmentExpression:
     return AssignmentExpression(operator, identifier, expression)
 
 
-def make_variable_declaration(identifier, initializer):
+def make_variable_declaration(identifier: Identifier, initializer: Expression) -> VariableDeclaration:
     return VariableDeclaration(identifier, initializer)
 
 
-def make_binary_expression(operator, left, right):
+def make_binary_expression(operator: str, left: Expression, right: Expression) -> BinaryExpression:
     return BinaryExpression(operator, left, right)
 
 
-def make_integer_literal(value):
+def make_integer_literal(value: int) -> IntegerLiteral:
     return IntegerLiteral(value)
 
 
-def make_float_literal(value):
+def make_float_literal(value: float) -> FloatLiteral:
     return FloatLiteral(value)
 
 
-def make_string_literal(value):
+def make_string_literal(value: str) -> StringLiteral:
     return StringLiteral(value)
 
 
-def make_identifier(name):
+def make_identifier(name: str) -> Identifier:
     return Identifier(name)
 
 
-def tokens_from_string(input_string: str):
+def tokens_from_string(input_string: str) -> List[Token]:
     token_map = {
         "INDENT": INDENT,
         "DEDENT": DEDENT,
@@ -395,6 +485,7 @@ def tokens_from_string(input_string: str):
         "true": TRUE,
         "false": FALSE,
         "if": IF,
+        "then": THEN,
         "else": ELSE,
         "return": RETURN,
     }
