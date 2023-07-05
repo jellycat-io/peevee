@@ -201,6 +201,30 @@ class StringLiteral(Literal):
         return f'StringLiteral({str(self.value)})'
 
 
+class BoolLiteral(Literal):
+    """
+    <literal> ::= (TRUE | FALSE)
+    """
+
+    def __init__(self, value: bool):
+        self.value = value
+
+    def __str__(self):
+        return f'BoolLiteral({self.value})'
+
+
+class NullLiteral(Literal):
+    """
+    <literal> ::= NIL
+    """
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return f'NullLiteral({None})'
+
+
 class Identifier(Expression):
     """
     <left_hand_side_expression> ::= IDENT

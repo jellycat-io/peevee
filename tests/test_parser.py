@@ -55,12 +55,14 @@ from src.node import (
     AssignmentExpression,
     BinaryExpression,
     BlockStatement,
+    BoolLiteral,
     Expression,
     ExpressionStatement,
     FloatLiteral,
     Identifier,
     IfStatement,
     IntegerLiteral,
+    NullLiteral,
     Program,
     Statement,
     StringLiteral,
@@ -127,6 +129,9 @@ class ParserTestCase(unittest.TestCase):
             "INT=42\\n"
             "FLOAT=3.14\\n"
             "STRING=flareon\\n"
+            "true\\n"
+            "false\\n"
+            "nil\\n"
         )
 
         tokens = tokens_from_string(input)
@@ -138,6 +143,9 @@ class ParserTestCase(unittest.TestCase):
                 make_expression_statement(make_integer_literal(42)),
                 make_expression_statement(make_float_literal(3.14)),
                 make_expression_statement(make_string_literal("flareon")),
+                make_expression_statement(make_bool_literal(True)),
+                make_expression_statement(make_bool_literal(False)),
+                make_expression_statement(make_null_literal()),
             ]
         )
 
@@ -329,11 +337,11 @@ class ParserTestCase(unittest.TestCase):
             "let IDENT=pokemon\\n"
             "let IDENT=level\\n"
             "let IDENT=evo_cond\\n"
-            "if ( IDENT=level >= INT=15 ) then\\n"
+            "if ( IDENT=level >= INT=15 == true ) then\\n"
             "   IDENT=pokemon = STRING=ivysaur\\n"
             "else\\n"
             "   IDENT=pokemon = STRING=bulbasaur\\n"
-            "if ( IDENT=eevee ) then\\n"
+            "if ( IDENT=eevee != nil ) then\\n"
             "   if ( IDENT=evo_cond == STRING=solar_stone ) then\\n"
             "       IDENT=eevee = STRING=leafeon\\n"
             "   if IDENT=evo_cond == STRING=friendship_plus_exchange then IDENT=eevee = STRING=sylveon\\n"
@@ -357,9 +365,13 @@ class ParserTestCase(unittest.TestCase):
             ]),
             make_if_statement(
                 make_binary_expression(
-                    GT_EQ,
-                    make_identifier("level"),
-                    make_integer_literal(15)
+                    EQ,
+                    make_binary_expression(
+                        GT_EQ,
+                        make_identifier("level"),
+                        make_integer_literal(15)
+                    ),
+                    make_bool_literal(True),
                 ),
                 make_block_statement([make_expression_statement(make_assignment_expression(
                     ASSIGN,
@@ -373,7 +385,11 @@ class ParserTestCase(unittest.TestCase):
                 ))]),
             ),
             make_if_statement(
-                make_identifier("eevee"),
+                make_binary_expression(
+                    NOT_EQ,
+                    make_identifier("eevee"),
+                    make_null_literal(),
+                ),
                 make_block_statement([
                     make_if_statement(
                         make_binary_expression(
@@ -468,6 +484,14 @@ def make_float_literal(value: float) -> FloatLiteral:
 
 def make_string_literal(value: str) -> StringLiteral:
     return StringLiteral(value)
+
+
+def make_bool_literal(value: bool) -> BoolLiteral:
+    return BoolLiteral(value)
+
+
+def make_null_literal() -> NullLiteral:
+    return NullLiteral()
 
 
 def make_identifier(name: str) -> Identifier:

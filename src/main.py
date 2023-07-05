@@ -12,12 +12,12 @@ let pokemon
 let level
 let evo_cond
 
-if (level > 16) then
+if (level > 16 == true) then
     pokemon = "ivysaur"
 else
     pokemon = "bulbasaur"
 
-if eevee then
+if eevee != nil then
     if evo_cond == "solar_stone" then
         eevee = "leafeon"
     if evo_cond == "friendship_with_exchange" then eevee = "sylveon"

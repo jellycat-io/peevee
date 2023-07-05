@@ -4,6 +4,7 @@ from node import (
     AssignmentExpression,
     BinaryExpression,
     BlockStatement,
+    BoolLiteral,
     Expression,
     ExpressionStatement,
     FloatLiteral,
@@ -13,6 +14,7 @@ from node import (
     IntegerLiteral,
     Literal,
     Node,
+    NullLiteral,
     PrimaryExpression,
     Program,
     Statement,
@@ -29,6 +31,7 @@ from lexer import (
     ELSE,
     EOF,
     EQ,
+    FALSE,
     FLOAT,
     GT,
     GT_EQ,
@@ -42,6 +45,7 @@ from lexer import (
     LPAREN,
     MINUS,
     MINUS_ASSIGN,
+    NIL,
     NOT_EQ,
     PERCENT,
     PLUS,
@@ -53,6 +57,7 @@ from lexer import (
     STAR_ASSIGN,
     STRING,
     THEN,
+    TRUE,
 )
 
 
@@ -130,7 +135,7 @@ class Parser:
     def parse_variable_initializer(self) -> AssignmentExpression:
         self.eat(ASSIGN)
         return self.parse_assignment_expression()
-    
+
     def parse_if_statement(self) -> IfStatement:
         self.eat(IF)
         condition = self.parse_expression()
@@ -169,7 +174,7 @@ class Parser:
             self.check_valid_assignment_target(left),
             self.parse_assignment_expression()
         )
-    
+
     def parse_equality_expression(self) -> BinaryExpression:
         return self.parse_binary_expression(self.parse_relational_expression, EQ, NOT_EQ)
 
@@ -210,12 +215,18 @@ class Parser:
             return self.parse_left_hand_side_expression()
 
     def parse_literal(self) -> Literal:
-        if self.current_token.type == INT:
+        if self.match(INT):
             return self.parse_integer_literal()
-        elif self.current_token.type == FLOAT:
+        elif self.match(FLOAT):
             return self.parse_float_literal()
-        elif self.current_token.type == STRING:
+        elif self.match(STRING):
             return self.parse_string_literal()
+        elif self.match(TRUE):
+            return self.parse_bool_literal(True)
+        elif self.match(FALSE):
+            return self.parse_bool_literal(False)
+        elif self.match(NIL):
+            return self.parse_null_literal()
         else:
             raise SyntaxError(
                 f"[{self.current_token.line}:{self.current_token.column}] Unexpected token: {self.current_token.type}"
@@ -233,9 +244,20 @@ class Parser:
         value = self.eat(STRING).literal
         return StringLiteral(value)
 
+    def parse_bool_literal(self, value: bool) -> BoolLiteral:
+        if value:
+            self.eat(TRUE)
+        else:
+            self.eat(FALSE)
+
+        return BoolLiteral(value)
+
+    def parse_null_literal(self) -> NullLiteral:
+        self.eat(NIL)
+        return NullLiteral()
+
     def parse_identifier(self) -> Identifier:
         name = self.eat(IDENT).literal
-
         return Identifier(name)
 
     def parse_assignment_operator(self) -> Token:
@@ -266,7 +288,7 @@ class Parser:
         )
 
     def is_literal(self, token_type: TokenType) -> bool:
-        return token_type == INT or token_type == FLOAT or token_type == STRING
+        return token_type == INT or token_type == FLOAT or token_type == STRING or token_type == TRUE or token_type == FALSE or token_type == NIL
 
     def advance(self):
         self.current_token_idx += 1
