@@ -1,38 +1,49 @@
-from typing import List
+from typing import Callable, List
 
 from node import (
+    AssignmentExpression,
+    BinaryExpression,
+    BlockStatement,
+    Expression,
     ExpressionStatement,
     FloatLiteral,
+    GroupedExpression,
+    Identifier,
     IntegerLiteral,
+    Literal,
+    Node,
     PrimaryExpression,
     Program,
-    BlockStatement,
     Statement,
     StringLiteral,
-    BinaryExpression,
-    Expression,
-    Literal
 )
 from lexer import (
     Token,
+    TokenType,
+    ASSIGN,
     DEDENT,
     EOF,
     FLOAT,
+    IDENT,
     INDENT,
     INT,
     LPAREN,
     MINUS,
+    MINUS_ASSIGN,
     PERCENT,
     PLUS,
+    PLUS_ASSIGN,
     RPAREN,
     SLASH,
+    SLASH_ASSIGN,
     STAR,
+    STAR_ASSIGN,
     STRING,
 )
 
 
 class Parser:
-    def __init__(self, tokens):
+    def __init__(self, tokens: List[Token]):
         self.current_token_idx = 0
         self.tokens = tokens
         self.current_token = self.tokens[self.current_token_idx]
@@ -41,17 +52,17 @@ class Parser:
         return self.parse_program()
 
     def parse_program(self) -> Program:
-        statement_list = self.parse_statement_list(EOF)
+        statements = self.parse_statements(EOF)
 
-        return Program(statement_list)
+        return Program(statements)
 
-    def parse_statement_list(self, stop_token_type) -> List[Statement]:
-        statement_list = []
+    def parse_statements(self, stop_token_type: TokenType) -> List[Statement]:
+        statements = []
 
         while not self.match(stop_token_type):
-            statement_list.append(self.parse_statement())
+            statements.append(self.parse_statement())
 
-        return statement_list
+        return statements
 
     def parse_statement(self):
         if self.match(INDENT):
@@ -60,31 +71,43 @@ class Parser:
         return self.parse_expression_statement()
 
     def parse_block_statement(self) -> BlockStatement:
-        statement_list = []
+        statements = []
         self.eat(INDENT)
 
         if not self.match(DEDENT):
-            statement_list = self.parse_statement_list(DEDENT)
+            statements = self.parse_statements(DEDENT)
         else:
-            statement_list = []
+            statements = []
 
         self.eat(DEDENT)
 
-        return BlockStatement(statement_list)
+        return BlockStatement(statements)
 
     def parse_expression_statement(self) -> ExpressionStatement:
         expression = self.parse_expression()
         return ExpressionStatement(expression)
 
     def parse_expression(self) -> Expression:
-        return self.parse_additive_expression()
+        return self.parse_assignment_expression()
 
-    def parse_grouped_expression(self) -> Expression:
+    def parse_grouped_expression(self) -> GroupedExpression:
         self.eat(LPAREN)
         expression = self.parse_expression()
         self.eat(RPAREN)
 
         return expression
+
+    def parse_assignment_expression(self) -> AssignmentExpression:
+        left = self.parse_additive_expression()
+
+        if not self.is_assignment_operator(self.current_token.type):
+            return left
+
+        return AssignmentExpression(
+            self.parse_assignment_operator().literal,
+            self.check_valid_assignment_target(left),
+            self.parse_assignment_expression()
+        )
 
     def parse_additive_expression(self) -> BinaryExpression:
         return self.parse_binary_expression(self.parse_multiplicative_expression, PLUS, MINUS)
@@ -92,7 +115,7 @@ class Parser:
     def parse_multiplicative_expression(self) -> BinaryExpression:
         return self.parse_binary_expression(self.parse_primary_expression, STAR, SLASH, PERCENT)
 
-    def parse_binary_expression(self, builder, *ops) -> BinaryExpression:
+    def parse_binary_expression(self, builder: Callable[[], BinaryExpression], *ops: TokenType) -> BinaryExpression:
         left = builder()
 
         for op in ops:
@@ -103,11 +126,16 @@ class Parser:
 
         return left
 
+    def parse_left_hand_side_expression(self) -> Expression:
+        return self.parse_identifier()
+
     def parse_primary_expression(self) -> PrimaryExpression:
-        if self.match(LPAREN):
+        if self.is_literal(self.current_token.type):
+            return self.parse_literal()
+        elif self.match(LPAREN):
             return self.parse_grouped_expression()
         else:
-            return self.parse_literal()
+            return self.parse_left_hand_side_expression()
 
     def parse_literal(self) -> Literal:
         if self.current_token.type == INT:
@@ -133,6 +161,41 @@ class Parser:
         value = self.eat(STRING).literal
         return StringLiteral(value)
 
+    def parse_identifier(self) -> Identifier:
+        name = self.eat(IDENT).literal
+
+        return Identifier(name)
+
+    def parse_assignment_operator(self) -> Token:
+        if self.match(ASSIGN):
+            return self.eat(ASSIGN)
+
+        return self.eat(self.check_complex_assignment_operator())
+
+    def is_assignment_operator(self, token_type: TokenType) -> bool:
+        return token_type == ASSIGN or token_type == self.check_complex_assignment_operator()
+
+    def check_complex_assignment_operator(self) -> TokenType:
+        if self.match(PLUS_ASSIGN):
+            return PLUS_ASSIGN
+        elif self.match(MINUS_ASSIGN):
+            return MINUS_ASSIGN
+        elif self.match(STAR_ASSIGN):
+            return STAR_ASSIGN
+        elif self.match(SLASH_ASSIGN):
+            return SLASH_ASSIGN
+
+    def check_valid_assignment_target(self, node: Node) -> Node:
+        if isinstance(node, Identifier):
+            return node
+
+        raise SyntaxError(
+            f"[{self.current_token.line}:{self.current_token.column}] Invalid left-hand side in assignment expression"
+        )
+
+    def is_literal(self, token_type: TokenType) -> bool:
+        return token_type == INT or token_type == FLOAT or token_type == STRING
+
     def advance(self):
         self.current_token_idx += 1
         if self.current_token_idx < len(self.tokens):
@@ -140,7 +203,7 @@ class Parser:
         else:
             self.current_token = None
 
-    def eat(self, token_type) -> Token:
+    def eat(self, token_type: TokenType) -> Token:
         token = self.current_token
         if self.match(token_type):
             self.advance()
@@ -151,7 +214,7 @@ class Parser:
 
         return token
 
-    def match(self, token_type) -> bool:
+    def match(self, token_type: TokenType) -> bool:
         return self.current_token.type == token_type
 
     def is_at_end(self) -> bool:

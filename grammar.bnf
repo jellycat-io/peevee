@@ -8,7 +8,7 @@
 
 <expression> ::= <additive-expression>
 
-<assignment-expression> ::= <variable> = <expression>
+<assignment-expression> ::= <variable> (ASSIGN | COMPLEX_ASSIGN) <expression>
 
 <additive-expression> ::= <multiplicative-expression> { ('+' | '-') <multiplicative-expression> }
 

@@ -5,9 +5,10 @@ from src.lexer import (
     BANG,
     COLON,
     COMMA,
-    COMMENT,
-    COMPLEX_ASSIGN,
-    CR,
+    PLUS_ASSIGN,
+    MINUS_ASSIGN,
+    STAR_ASSIGN,
+    SLASH_ASSIGN,
     DEDENT,
     ELSE,
     EOF,
@@ -18,7 +19,6 @@ from src.lexer import (
     GT,
     IDENT,
     IF,
-    ILLEGAL,
     IMPORT,
     INDENT,
     INT,
@@ -30,7 +30,6 @@ from src.lexer import (
     MINUS,
     MODULE,
     NOT_EQ,
-    NUMBER,
     PERCENT,
     PLUS,
     RBRACE,
@@ -42,15 +41,15 @@ from src.lexer import (
     STAR,
     STRING,
     TRUE,
-    WHITESPACE,
-    Lexer,
     Token,
 )
 
 from src.node import (
+    AssignmentExpression,
     BinaryExpression,
     ExpressionStatement,
     FloatLiteral,
+    Identifier,
     IntegerLiteral,
     Program,
     BlockStatement,
@@ -142,6 +141,7 @@ class ParserTestCase(unittest.TestCase):
             "INT=5 * INT=5 + INT=5\\n"
             "INT=5 * ( INT=5 + INT=5 )\\n"
             "INT=5 % INT=5\\n"
+            "IDENT=foo + IDENT=bar\\n"
         )
 
         tokens = tokens_from_string(input)
@@ -188,6 +188,62 @@ class ParserTestCase(unittest.TestCase):
                 make_integer_literal(5),
                 make_integer_literal(5)
             )),
+            make_expression_statement(make_binary_expression(
+                PLUS,
+                make_identifier("foo"),
+                make_identifier("bar")
+            )),
+        ])
+
+        self.assertEqual(str(ast), str(expected_ast))
+
+    def test_parse_assignment_expression(self):
+        input = (
+            "IDENT=foo = STRING=bar\\n"
+            "IDENT=foo += STRING=bar\\n"
+            "IDENT=foo = IDENT=bar\\n"
+            "IDENT=foo = IDENT=bar = IDENT=baz\\n"
+            "IDENT=foo = IDENT=bar = STRING=baz\\n"
+        )
+
+        tokens = tokens_from_string(input)
+        parser = Parser(tokens)
+        ast = parser.parse()
+
+        expected_ast = Program([
+            make_expression_statement(make_assignment_expression(
+                ASSIGN,
+                make_identifier("foo"),
+                make_string_literal("bar")
+            )),
+            make_expression_statement(make_assignment_expression(
+                PLUS_ASSIGN,
+                make_identifier("foo"),
+                make_string_literal("bar")
+            )),
+            make_expression_statement(make_assignment_expression(
+                ASSIGN,
+                make_identifier("foo"),
+                make_identifier("bar")
+            )),
+            make_expression_statement(make_assignment_expression(
+                ASSIGN,
+                make_identifier("foo"),
+                make_assignment_expression(
+                    ASSIGN,
+                    make_identifier("bar"),
+                    make_identifier("baz")
+                )
+            )),
+            make_expression_statement(make_assignment_expression(
+                ASSIGN,
+                make_identifier("foo"),
+                make_assignment_expression(
+                    ASSIGN,
+                    make_identifier("bar"),
+                    make_string_literal("baz")
+                )
+            )),
         ])
 
         self.assertEqual(str(ast), str(expected_ast))
@@ -199,6 +255,10 @@ def make_block_statement(statements):
 
 def make_expression_statement(expression):
     return ExpressionStatement(expression)
+
+
+def make_assignment_expression(operator, identifier, expression):
+    return AssignmentExpression(operator, identifier, expression)
 
 
 def make_binary_expression(operator, left, right):
@@ -217,6 +277,10 @@ def make_string_literal(value):
     return StringLiteral(value)
 
 
+def make_identifier(name):
+    return Identifier(name)
+
+
 def tokens_from_string(input_string: str):
     token_map = {
         "INDENT": INDENT,
@@ -227,10 +291,10 @@ def tokens_from_string(input_string: str):
         "FLOAT": FLOAT,
         "STRING": STRING,
         "=": ASSIGN,
-        "+=": COMPLEX_ASSIGN,
-        "-=": COMPLEX_ASSIGN,
-        "*=": COMPLEX_ASSIGN,
-        "/=": COMPLEX_ASSIGN,
+        "+=": PLUS_ASSIGN,
+        "-=": MINUS_ASSIGN,
+        "*=": STAR_ASSIGN,
+        "/=": SLASH_ASSIGN,
         "+": PLUS,
         "-": MINUS,
         "*": STAR,
@@ -286,8 +350,7 @@ def tokens_from_string(input_string: str):
         current_column = indentation + 1
         segments = line.lstrip().split()
         for segment in segments:
-            print(segment)
-            if "=" in segment:
+            if len(segment) > 2 and "=" in segment:
                 type_str, literal = segment.split("=")
                 token_type = token_map[type_str]
             else:

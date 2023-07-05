@@ -27,6 +27,10 @@ INT = TokenType("INT")
 FLOAT = TokenType("FLOAT")
 STRING = TokenType("STRING")
 ASSIGN = TokenType("=")
+PLUS_ASSIGN = TokenType("+=")
+MINUS_ASSIGN = TokenType("-=")
+STAR_ASSIGN = TokenType("*=")
+SLASH_ASSIGN = TokenType("/=")
 PLUS = TokenType("+")
 MINUS = TokenType("-")
 STAR = TokenType("*")
@@ -117,26 +121,17 @@ class Lexer:
 
         # Define regular expression patterns for token types
         patterns = [
+            # -----------------------------------------------
+            # Whitespaces
             (r"^[ \t]+", WHITESPACE),
-            (r"\^#[^\n]*", COMMENT),
             (r"^\n", CR),
-            (r"^[a-zA-Z_][a-zA-Z0-9_]*", IDENT),
-            (r"^\d+\.\d+", FLOAT),
-            (r"^\d+", INT),
-            (r"^\".*?\"", STRING),
-            (r"^\=\=", EQ),
-            (r"^\!\=", NOT_EQ),
-            (r"^\=", ASSIGN),
-            (r"^\+", PLUS),
-            (r"^\-", MINUS),
-            (r"^\*", STAR),
-            (r"^\/", SLASH),
-            (r"^\%", PERCENT),
-            (r"^\!", BANG),
-            (r"^\<", LT),
-            (r"^\>", GT),
-            (r"^\,", COMMA),
+            # -----------------------------------------------
+            # Comments
+            (r"\^#[^\n]*", COMMENT),
+            # -----------------------------------------------
+            # Symbols, delimiters
             (r"^\;", SEMI),
+            (r"^\,", COMMA),
             (r"^\:", COLON),
             (r"^\(", LPAREN),
             (r"^\)", RPAREN),
@@ -144,6 +139,35 @@ class Lexer:
             (r"^\}", RBRACE),
             (r"^\[", LBRACKET),
             (r"^\]", RBRACKET),
+            # -----------------------------------------------
+            # Identifiers
+            (r"^[a-zA-Z_][a-zA-Z0-9_]*", IDENT),
+            # -----------------------------------------------
+            # Assignment operators
+            (r"^\=", ASSIGN),
+            (r"^\+\=", PLUS_ASSIGN),
+            (r"^\-\=", MINUS_ASSIGN),
+            (r"^\*\=", STAR_ASSIGN),
+            (r"^\/\=", SLASH_ASSIGN),
+            # -----------------------------------------------
+            # Math operators
+            (r"^\+", PLUS),
+            (r"^\-", MINUS),
+            (r"^\*", STAR),
+            (r"^\/", SLASH),
+            (r"^\%", PERCENT),
+            # -----------------------------------------------
+            # Comparison operators
+            (r"^\=\=", EQ),
+            (r"^\!\=", NOT_EQ),
+            (r"^\!", BANG),
+            (r"^\<", LT),
+            (r"^\>", GT),
+            # -----------------------------------------------
+            # Literals
+            (r"^\d+\.\d+", FLOAT),
+            (r"^\d+", INT),
+            (r"^\".*?\"", STRING),
         ]
 
         while line:
@@ -165,10 +189,6 @@ class Lexer:
                 self.tokens.append(Token(ILLEGAL, line[0], line_num, column))
                 line = line[1:]
                 column += 1
-
-        # Decrement the column value for DEDENT tokens
-        if self.tokens and self.tokens[-1].type == DEDENT:
-            self.tokens[-1] = Token(DEDENT, "", line_num, column - 1)
 
     def get_tokens(self) -> List[Token]:
         return self.tokens

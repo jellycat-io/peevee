@@ -8,12 +8,12 @@ from node import NodeEncoder
 from token_parser import Parser
 
 source = """
-42 + 3 - 3
+foo = "bar"
     3.14 % 2
     "flareon"
         "sylveon"
     "leafeon"
-42
+answer = 42
 """
 
 lexer = Lexer(source)
@@ -21,6 +21,8 @@ for token in lexer.get_tokens():
     print(token)
 parser = Parser(lexer.tokens)
 ast = parser.parse()
-ast = json.dumps(ast, cls=NodeEncoder, indent=2)
 
+# print(str(ast))
+
+ast = json.dumps(ast, cls=NodeEncoder, indent=2)
 print(highlight(ast, JsonLexer(), TerminalFormatter()))

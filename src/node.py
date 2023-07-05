@@ -63,15 +63,16 @@ class Expression(Node):
 
 class AssignmentExpression(Expression):
     """
-    <assignment-expression> ::= <variable> = <expression>
+    <assignment-expression> ::= <variable> (ASSIGN | COMPLEX_ASSIGN) <expression>
     """
 
-    def __init__(self, identifier: "IdentifierExpression", expression: "Expression"):
+    def __init__(self, operator: str, identifier: "Identifier", expression: "Expression"):
+        self.operator = operator
         self.identifier = identifier
         self.expression = expression
 
     def __str__(self):
-        return f'AssignmentExpression({self.variable}, {self.expression})'
+        return f'AssignmentExpression({self.operator}, {self.identifier}, {self.expression})'
 
 
 class BinaryExpression(Expression):
@@ -150,7 +151,7 @@ class StringLiteral(Literal):
         return f'StringLiteral("{self.value}")'
 
 
-class IdentifierExpression(Expression):
+class Identifier(Expression):
     """
     <identifier> ::= STRING
     """
@@ -159,4 +160,4 @@ class IdentifierExpression(Expression):
         self.name = name
 
     def __str__(self):
-        return f'IdentifierExpression({self.name})'
+        return f'Identifier({self.name})'
