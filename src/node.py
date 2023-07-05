@@ -63,7 +63,7 @@ class Expression(Node):
 
 class AssignmentExpression(Expression):
     """
-    <assignment-expression> ::= <variable> (ASSIGN | COMPLEX_ASSIGN) <expression>
+    <assignment-expression> ::= <left-hand-side-expression> (ASSIGN | COMPLEX_ASSIGN) <expression>
     """
 
     def __init__(self, operator: str, identifier: "Identifier", expression: "Expression"):
@@ -91,7 +91,7 @@ class BinaryExpression(Expression):
 
 class PrimaryExpression(Expression):
     """
-    <primary-expression> ::= <literal> | <grouped-expression>
+    <primary-expression> ::= <literal> | <grouped-expression> | <left-hand-side-expression>
     """
     pass
 
@@ -161,3 +161,15 @@ class Identifier(Expression):
 
     def __str__(self):
         return f'Identifier({self.name})'
+
+
+class LeftHandSideExpression(Expression):
+    """
+    <left-hand-side-expression> ::= <identifier>
+    """
+
+    def __init__(self, identifier: "Identifier"):
+        self.identifier = identifier
+
+    def __str__(self):
+        return f'LeftHandSideExpression({str(self.identifier)})'

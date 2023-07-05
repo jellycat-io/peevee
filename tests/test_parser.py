@@ -204,6 +204,7 @@ class ParserTestCase(unittest.TestCase):
             "IDENT=foo = IDENT=bar\\n"
             "IDENT=foo = IDENT=bar = IDENT=baz\\n"
             "IDENT=foo = IDENT=bar = STRING=baz\\n"
+            "IDENT=foo = INT=40 + INT=2\\n"
         )
 
         tokens = tokens_from_string(input)
@@ -242,6 +243,15 @@ class ParserTestCase(unittest.TestCase):
                     ASSIGN,
                     make_identifier("bar"),
                     make_string_literal("baz")
+                )
+            )),
+            make_expression_statement(make_assignment_expression(
+                ASSIGN,
+                make_identifier("foo"),
+                make_binary_expression(
+                    PLUS,
+                    make_integer_literal(40),
+                    make_integer_literal(2),
                 )
             )),
         ])

@@ -10,6 +10,7 @@ from node import (
     GroupedExpression,
     Identifier,
     IntegerLiteral,
+    LeftHandSideExpression,
     Literal,
     Node,
     PrimaryExpression,
@@ -126,7 +127,7 @@ class Parser:
 
         return left
 
-    def parse_left_hand_side_expression(self) -> Expression:
+    def parse_left_hand_side_expression(self) -> LeftHandSideExpression:
         return self.parse_identifier()
 
     def parse_primary_expression(self) -> PrimaryExpression:

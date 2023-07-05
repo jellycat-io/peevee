@@ -1,29 +1,22 @@
-<program> ::= { <statement> }
+program           ::= statements EOF
+statements        ::= statement statements
+statement         ::= block_statement | expression_statement
+block_statement   ::= INDENT [statements] DEDENT
+expression_statement ::= expression
+expression        ::= assignment_expression
+assignment_expression ::= additive_expression [assignment_operator assignment_expression]
+additive_expression ::= multiplicative_expression { (PLUS | MINUS) multiplicative_expression }
+multiplicative_expression ::= primary_expression { (STAR | SLASH | PERCENT) primary_expression }
+binary_expression ::= primary_expression { operator primary_expression }
+left_hand_side_expression ::= identifier
+primary_expression ::= literal | grouped_expression | left_hand_side_expression
+literal           ::= integer_literal | float_literal | string_literal
+integer_literal   ::= INT
+float_literal     ::= FLOAT
+string_literal    ::= STRING
+identifier        ::= IDENT
+assignment_operator ::= ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | STAR_ASSIGN | SLASH_ASSIGN
 
-<statement> ::= <block-statement> | <expression-statement>
-
-<block-statement> ::= INDENT { <statement> } DEDENT
-
-<expression-statement> ::= <expression>
-
-<expression> ::= <additive-expression>
-
-<assignment-expression> ::= <variable> (ASSIGN | COMPLEX_ASSIGN) <expression>
-
-<additive-expression> ::= <multiplicative-expression> { ('+' | '-') <multiplicative-expression> }
-
-<multiplicative-expression> ::= <primary-expression> { ('*' | '/') <primary-expression> }
-
-<primary-expression> ::= <literal> | <grouped-expression>
-
-<grouped-expression> ::= '(' <expression> ')'
-
-<literal> ::= <integer-literal> | <float-literal> | <string-literal>
-
-<integer-literal> ::= INT
-
-<float-literal> ::= FLOAT
-
-<string-literal> ::= STRING
-
-<identifier> ::= STRING
+INDENT, DEDENT, EOF, LPAREN, RPAREN, PLUS, MINUS, STAR, SLASH, PERCENT,
+ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, STAR_ASSIGN, SLASH_ASSIGN,
+INT, FLOAT, STRING, IDENT are terminal symbols.
