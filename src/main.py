@@ -7,14 +7,14 @@ from lexer import Lexer
 from node import NodeEncoder
 from token_parser import Parser
 
-source = """
-foo = "bar"
-    3.14 % 2
-    "flareon"
-        "sylveon"
-    "leafeon"
-answer = 42
-"""
+source = (
+    "let x = 42\n"
+    "let foo = bar\n"
+    "let x, y\n"
+    "let x, y = 42\n"
+    "let x = 40 + 2\n"
+    'let x = y = "eevee"'
+)
 
 lexer = Lexer(source)
 for token in lexer.get_tokens():

@@ -54,6 +54,8 @@ from src.node import (
     Program,
     BlockStatement,
     StringLiteral,
+    VariableDeclaration,
+    VariableStatement,
 )
 from src.token_parser import Parser
 
@@ -258,6 +260,60 @@ class ParserTestCase(unittest.TestCase):
 
         self.assertEqual(str(ast), str(expected_ast))
 
+    def test_parse_variable_declarations(self):
+        input = (
+            "let IDENT=x = INT=42\\n"
+            "let IDENT=foo = IDENT=bar\\n"
+            "let IDENT=x , IDENT=y\\n"
+            "let IDENT=x , IDENT=y = INT=42\\n"
+            "let IDENT=x = INT=40 + INT=2\\n"
+            "let IDENT=x = IDENT=y = INT=42\\n"
+        )
+
+        tokens = tokens_from_string(input)
+        parser = Parser(tokens)
+        ast = parser.parse()
+
+        expected_ast = Program([
+            make_variable_statement([make_variable_declaration(
+                make_identifier("x"),
+                make_integer_literal(42),
+            )]),
+            make_variable_statement([make_variable_declaration(
+                make_identifier("foo"),
+                make_identifier("bar"),
+            )]),
+            make_variable_statement([
+                make_variable_declaration(make_identifier("x"), None),
+                make_variable_declaration(make_identifier("y"), None),
+            ]),
+            make_variable_statement([
+                make_variable_declaration(make_identifier("x"), None),
+                make_variable_declaration(
+                    make_identifier("y"),
+                    make_integer_literal(42),
+                )
+            ]),
+            make_variable_statement([make_variable_declaration(
+                make_identifier("x"),
+                make_binary_expression(
+                    PLUS,
+                    make_integer_literal(40),
+                    make_integer_literal(2),
+                )
+            )]),
+            make_variable_statement([make_variable_declaration(
+                make_identifier("x"),
+                make_assignment_expression(
+                    ASSIGN,
+                    make_identifier("y"),
+                    make_integer_literal(42),
+                )
+            )]),
+        ])
+
+        self.assertEqual(str(ast), str(expected_ast))
+
 
 def make_block_statement(statements):
     return BlockStatement(statements)
@@ -267,8 +323,16 @@ def make_expression_statement(expression):
     return ExpressionStatement(expression)
 
 
+def make_variable_statement(declarations):
+    return VariableStatement(declarations)
+
+
 def make_assignment_expression(operator, identifier, expression):
     return AssignmentExpression(operator, identifier, expression)
+
+
+def make_variable_declaration(identifier, initializer):
+    return VariableDeclaration(identifier, initializer)
 
 
 def make_binary_expression(operator, left, right):

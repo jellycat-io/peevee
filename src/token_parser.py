@@ -10,24 +10,27 @@ from node import (
     GroupedExpression,
     Identifier,
     IntegerLiteral,
-    LeftHandSideExpression,
     Literal,
     Node,
     PrimaryExpression,
     Program,
     Statement,
     StringLiteral,
+    VariableStatement,
+    VariableDeclaration,
 )
 from lexer import (
     Token,
     TokenType,
     ASSIGN,
+    COMMA,
     DEDENT,
     EOF,
     FLOAT,
     IDENT,
     INDENT,
     INT,
+    LET,
     LPAREN,
     MINUS,
     MINUS_ASSIGN,
@@ -68,6 +71,8 @@ class Parser:
     def parse_statement(self):
         if self.match(INDENT):
             return self.parse_block_statement()
+        elif self.match(LET):
+            return self.parse_variable_statement()
 
         return self.parse_expression_statement()
 
@@ -83,6 +88,34 @@ class Parser:
         self.eat(DEDENT)
 
         return BlockStatement(statements)
+
+    def parse_variable_statement(self) -> VariableStatement:
+        self.eat(LET)
+
+        declarations = self.parse_variable_declaration_list()
+
+        return VariableStatement(declarations)
+
+    def parse_variable_declaration_list(self) -> List[VariableDeclaration]:
+        declarations = [self.parse_variable_declaration()]
+
+        while self.match(COMMA) and self.eat(COMMA):
+            declarations.append(self.parse_variable_declaration())
+
+        return declarations
+
+    def parse_variable_declaration(self) -> VariableDeclaration:
+        identifier = self.parse_identifier()
+        initializer = None
+
+        if not self.match(COMMA) and self.match(ASSIGN):
+            initializer = self.parse_variable_initializer()
+
+        return VariableDeclaration(identifier, initializer)
+
+    def parse_variable_initializer(self) -> AssignmentExpression:
+        self.eat(ASSIGN)
+        return self.parse_assignment_expression()
 
     def parse_expression_statement(self) -> ExpressionStatement:
         expression = self.parse_expression()
@@ -127,7 +160,7 @@ class Parser:
 
         return left
 
-    def parse_left_hand_side_expression(self) -> LeftHandSideExpression:
+    def parse_left_hand_side_expression(self) -> Expression:
         return self.parse_identifier()
 
     def parse_primary_expression(self) -> PrimaryExpression:
@@ -214,6 +247,12 @@ class Parser:
             )
 
         return token
+
+    def expect(self, token_type: TokenType):
+        if not self.match(token_type):
+            raise SyntaxError(
+                f"[{self.current_token.line}:{self.current_token.column}] Expected {token_type}, but got {self.current_token.type}"
+            )
 
     def match(self, token_type: TokenType) -> bool:
         return self.current_token.type == token_type

@@ -177,6 +177,9 @@ class Lexer:
                 if match:
                     lexeme = match.group(0)
 
+                    if token_type == IDENT:
+                        token_type = lookup_ident(lexeme)
+
                     if token_type is not WHITESPACE:
                         self.tokens.append(Token(token_type, lexeme, line_num, column))
 

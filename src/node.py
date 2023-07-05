@@ -19,7 +19,7 @@ class Node:
 
 class Program(Node):
     """
-    <program> ::= { <statement> }
+    <program> ::= <statements>
     """
 
     def __init__(self, statements: List["Statement"]):
@@ -35,7 +35,7 @@ class Statement(Node):
 
 class BlockStatement(Statement):
     """
-    <block-statement> ::= INDENT { <statement> } DEDENT
+    <block-statement> ::= "INDENT" <statements> "DEDENT"
     """
 
     def __init__(self, statements: List["Statement"]):
@@ -57,13 +57,38 @@ class ExpressionStatement(Statement):
         return f'ExpressionStatement({str(self.expression)})'
 
 
+class VariableStatement(Statement):
+    """
+    <variable-statement> ::= "LET" <variable-declaration-list>
+    """
+
+    def __init__(self, declarations: List["VariableDeclaration"]):
+        self.declarations = declarations
+
+    def __str__(self):
+        return f'VariableStatement({", ".join(str(declaration) for declaration in self.declarations)})'
+
+
 class Expression(Node):
     pass
 
 
+class VariableDeclaration(Expression):
+    """
+    <variable-declaration> ::= <identifier> ["=" <variable-initializer>]
+    """
+
+    def __init__(self, identifier: "Identifier", initializer: "Expression"):
+        self.identifier = identifier
+        self.initializer = initializer
+
+    def __str__(self):
+        return f'VariableDeclaration({self.identifier}, {self.initializer})'
+
+
 class AssignmentExpression(Expression):
     """
-    <assignment-expression> ::= <left-hand-side-expression> (ASSIGN | COMPLEX_ASSIGN) <expression>
+    <assignment-expression> ::= <additive-expression> [<assignment-operator> <assignment-expression>]
     """
 
     def __init__(self, operator: str, identifier: "Identifier", expression: "Expression"):
@@ -77,7 +102,8 @@ class AssignmentExpression(Expression):
 
 class BinaryExpression(Expression):
     """
-    <binary-expression> ::= <expression> ( ('+' | '-' | '*' | '/') <expression> )
+    <additive-expression> ::= <multiplicative-expression> {("+" | "-") <multiplicative-expression>}
+    <multiplicative-expression> ::= <primary-expression> {("*" | "/" | "%") <primary-expression>}
     """
 
     def __init__(self, operator: str, left: "Expression", right: "Expression"):
@@ -91,14 +117,14 @@ class BinaryExpression(Expression):
 
 class PrimaryExpression(Expression):
     """
-    <primary-expression> ::= <literal> | <grouped-expression> | <left-hand-side-expression>
+    <primary-expression> ::= <literal> | <grouped-expression> | <identifier>
     """
     pass
 
 
 class GroupedExpression(Expression):
     """
-    <grouped-expression> ::= '(' <expression> ')'
+    <grouped-expression> ::= "(" <expression> ")"
     """
 
     def __init__(self, expression: "Expression"):
@@ -153,7 +179,7 @@ class StringLiteral(Literal):
 
 class Identifier(Expression):
     """
-    <identifier> ::= STRING
+    <identifier> ::= IDENT
     """
 
     def __init__(self, name: str):
@@ -161,15 +187,3 @@ class Identifier(Expression):
 
     def __str__(self):
         return f'Identifier({self.name})'
-
-
-class LeftHandSideExpression(Expression):
-    """
-    <left-hand-side-expression> ::= <identifier>
-    """
-
-    def __init__(self, identifier: "Identifier"):
-        self.identifier = identifier
-
-    def __str__(self):
-        return f'LeftHandSideExpression({str(self.identifier)})'
