@@ -61,8 +61,6 @@ FALSE = TokenType("FALSE")
 IF = TokenType("IF")
 THEN = TokenType("THEN")
 ELSE = TokenType("ELSE")
-IS = TokenType("IS")
-NOT = TokenType("NOT")
 RETURN = TokenType("RETURN")
 NIL = TokenType("NIL")
 

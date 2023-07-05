@@ -12,7 +12,7 @@ let pokemon
 let level
 let evo_cond
 
-if (level > 16 == true) then
+if (level > 16 is true) then
     pokemon = "ivysaur"
 else
     pokemon = "bulbasaur"
